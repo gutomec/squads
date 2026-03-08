@@ -1,57 +1,33 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
-## Visão Geral
+## Overview
 
-Plataforma de orquestração de squads multi-agente construída sobre AIOS (Anthropic Infrastructure for Orchestrated Squads). Contém 4 squads especializados que demonstram diferentes capacidades do framework.
+Squads is an Agent Skill for managing multi-agent teams. It follows the [Agent Skills Spec](https://agentskills.io/specification) and is installable via `npx skills add gutomec/squads`.
 
-## Estrutura do Projeto
+## Repository Structure
 
 ```
-squads/
-├── nirvana-squad-creator/   # Meta-tool: gera squads a partir de linguagem natural (prefix: nsc)
-├── ultimate-landingpage/    # Builder full-stack de landing pages (prefix: ultimate-lp)
-├── brandcraft/              # Geração de conteúdo visual: PDF, PPTX, vídeo, carrossel (prefix: brandcraft)
-└── aios-forge-squad/        # Desenvolvimento e otimização do próprio framework AIOS (prefix: afs)
+├── SKILL.md              # Agent Skills Spec skill definition (frontmatter + instructions)
+├── references/           # Progressive disclosure reference files (loaded on demand)
+├── examples/squads/      # Example squads for demonstration
+│   ├── nirvana-squad-creator/   # Meta-tool: generates squads from natural language
+│   └── ultimate-landingpage/    # Full-stack landing page builder
+├── README.md             # Documentation
+├── LICENSE               # MIT
+└── CLAUDE.md             # This file
 ```
 
-Cada squad segue a mesma anatomia:
-- `squad.yaml` — Manifesto (nome, versão, componentes, dependências, AIOS mínimo: 2.1.0)
-- `agents/*.md` — Definições de agentes (YAML frontmatter + Markdown com persona, comandos, dependências)
-- `tasks/*.md` — Definições de tarefas (YAML frontmatter + Markdown com Entrada/Saída/Checklist/Error Handling)
-- `workflows/*.yaml` — Fluxos de trabalho (sequências de agentes, transições, condicionais)
-- `config/*.md` — Padrões de código, tech stack, source tree
+## Key Files
 
-## Padrões Arquiteturais
+- `SKILL.md` — The main skill definition. Body must stay under 5000 tokens per Agent Skills Spec.
+- `references/` — 11 reference files loaded progressively (squad-creation-protocol, agent-schema, task-schema, workflow-schema, workflow-patterns, validation-checklist, registration-protocol, dependency-management, triggers-protocol, flow-tracker-protocol, squad-yaml-schema).
+- Reference paths in SKILL.md use relative paths: `references/filename.md`
 
-**Especificações AIOS:**
-- `AGENT-PERSONALIZATION-STANDARD-V1` — Agentes com archetype (Flow_Master, Builder, Guardian, Balancer, Explorer), persona e estilo de comunicação
-- `TASK-FORMAT-SPECIFICATION-V1` — Tarefas com contratos explícitos de Input/Output
-- Classificação atômica: Atom → Molecule → Organism → Ecosystem
+## Conventions
 
-**Padrões de workflow:**
-- Pipeline sequencial (nirvana-squad-creator: 9 fases lineares)
-- Execução paralela (ultimate-landingpage: design + copy em paralelo; frontend + backend em paralelo)
-- Componentes condicionais via feature flags (ultimate-landingpage: `backend`, `whatsapp`, `email`)
-- Roteamento dinâmico (brandcraft: orchestrator roteia para pipeline correto)
-
-## Tech Stack por Squad
-
-**BrandCraft** (o maior, com node_modules):
-- Puppeteer ^23 (HTML→PDF/PNG), PptxGenJS ^3.12 (PPTX), Remotion ^4 (vídeo React→MP4/WebM)
-- Scripts de produção em `scripts/render.js` e `scripts/create-pptx.js`
-- Geração de imagem via MCPs: nano-banana-pro (Gemini), dalle3, fal-video, flux
-
-**Ultimate Landing Page:**
-- Frontend: Next.js 15, React 19, TypeScript 5, Tailwind 4, shadcn/ui
-- Backend (condicional): Python 3.12+, FastAPI, SQLAlchemy 2.0 async, Alembic
-
-**Nirvana Squad Creator / AIOS Forge:** Node.js puro, zero dependências npm
-
-## Convenções
-
-- Arquivos de definição (agents, tasks) usam **português** no corpo (Entrada, Saída, Checklist) com YAML frontmatter em inglês
-- Nomes de variáveis e código em **inglês**
-- Sempre manter acentuação correta em PT-BR
-- Encoding UTF-8 em todos os arquivos
+- Body text in Portuguese (PT-BR) with correct accents
+- Variable names and code in English
+- UTF-8 encoding everywhere
+- YAML frontmatter fields in English

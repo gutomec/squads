@@ -53,28 +53,49 @@ That is portability. Real portability. Not "export to JSON and pray" portability
 
 ---
 
-## How it actually works
+## Install
 
-Squads is a skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code). You install it once. Then you build teams.
-
-### Install (30 seconds)
+### Option 1: skills.sh (recommended)
 
 ```bash
-cp -r squads-skill/ your-project/.claude/skills/squads/
-mkdir -p your-project/squads/
+npx skills add gutomec/squads
 ```
 
-Done. No npm install. No pip install. No Docker. No YAML hell. The skill uses native Claude Code tools — Read, Write, Edit, Glob, Grep, Bash. Nothing external.
+One command. Works with Claude Code, Codex CLI, Gemini CLI, Cursor, and any agent that supports the [Agent Skills Spec](https://agentskills.io).
+
+### Option 2: Manual
+
+```bash
+# Clone into your project's skills directory
+git clone https://github.com/gutomec/squads.git .claude/skills/squads
+
+# Or copy just what you need
+mkdir -p .claude/skills/squads
+cp SKILL.md .claude/skills/squads/
+cp -r references/ .claude/skills/squads/references/
+```
+
+Then create your squads directory:
+
+```bash
+mkdir -p squads/
+```
+
+Done. No npm install. No pip install. No Docker. No YAML hell. The skill uses native agent tools — Read, Write, Edit, Glob, Grep, Bash. Nothing external.
+
+---
+
+## How it works
 
 ### Create your first squad
 
-```bash
+```
 /squads *create-squad content-pipeline
 ```
 
 This scaffolds the entire directory structure, generates a squad.yaml manifest, and sets up the config. You now have an empty team. Start adding agents.
 
-```bash
+```
 /squads *add-agent content-pipeline writer
 /squads *add-agent content-pipeline reviewer
 /squads *add-agent content-pipeline publisher
@@ -84,13 +105,13 @@ Three agents. Each one gets its own .md file with a persona, expertise definitio
 
 ### Register for slash commands
 
-```bash
+```
 /squads *register-squad content-pipeline
 ```
 
 Now you can invoke any agent directly:
 
-```bash
+```
 /SQUADS:content-pipeline:cp-writer
 /SQUADS:content-pipeline:cp-reviewer
 ```
@@ -99,23 +120,34 @@ No extra config. No routing logic. Register once, use forever.
 
 ---
 
-## 7 things you can do
+## Commands
 
 | Command | What it does |
 |---------|-------------|
 | `*create-squad {name}` | Scaffolds a full squad directory |
 | `*list-squads` | Shows all squads with agent counts |
+| `*inspect-squad {name}` | Shows squad details and structure |
 | `*add-agent {squad} {role}` | Adds a specialist to the team |
-| `*validate-squad {name}` | Runs 20 integrity checks |
+| `*remove-agent {squad} {id}` | Removes an agent from the squad |
+| `*add-task {squad} {name}` | Adds a task to existing squad |
+| `*add-workflow {squad} {name}` | Adds a workflow to existing squad |
+| `*validate-squad {name}` | Runs 26 integrity checks |
 | `*register-squad {name}` | Enables slash commands for the squad |
+| `*unregister-squad {name}` | Removes squad registration |
 | `*install-squad-deps {name}` | Installs Node (pnpm) and Python (uv) deps |
-| `*run-workflow {squad} {name}` | Executes a collaboration workflow |
-
-There are more commands. These are the ones you'll use every day.
+| `*check-squad-deps {name}` | Checks dependency status without installing |
+| `*run-workflow {squad} {wf}` | Executes a collaboration workflow |
+| `*enable-triggers {name}` | Enable lifecycle triggers |
+| `*disable-triggers {name}` | Disable lifecycle triggers |
+| `*show-triggers {name}` | Show trigger configuration |
+| `*trigger-log {name}` | Show trigger history |
+| `*flow-preview {squad} {wf}` | Show planned flow map (terminal + A2UI) |
+| `*flow-summary {squad}` | Show executed flow diagram |
+| `*flow-live {squad}` | Enable/disable real-time flow tracking |
 
 ---
 
-## Workflows — how agents actually collaborate
+## Workflows — how agents collaborate
 
 An agent alone is useful. Agents that collaborate are dangerous (in a good way).
 
@@ -132,6 +164,32 @@ An agent alone is useful. Agents that collaborate are dangerous (in a good way).
 **Teams** — Real-time coordination via Claude Code Agent Teams. Agents communicate during execution. Use this for complex multi-step work where agents need to react to each other.
 
 Pick the pattern that fits. Or combine them. A pipeline where each step has a review loop. A hub-and-spoke where the specialists work in parallel. Mix and match.
+
+---
+
+## Triggers — lifecycle events for squads
+
+Squads support opt-in lifecycle triggers that fire on key events:
+
+- **squad-start** / **squad-end** — when a squad session begins/ends
+- **agent-start** / **agent-end** — when an agent is invoked/completes
+- **task-start** / **task-end** — when a task begins/completes
+- **delegation** — when one agent hands off to another
+- **error** — when something fails
+
+Triggers are opt-in per squad via `squad.yaml`. Events are logged to JSONL for analysis and debugging. Enable with `*enable-triggers {squad}`, check with `*show-triggers {squad}`.
+
+---
+
+## Flow Tracker — visualize agent collaboration
+
+See exactly what your squad is doing with ASCII flow diagrams:
+
+- **`*flow-preview`** — shows the planned execution path before running
+- **`*flow-live`** — real-time tracking as agents execute
+- **`*flow-summary`** — post-execution diagram of what happened
+
+Flow diagrams render in terminal and optionally in A2UI browser interface. Track delegation chains, identify bottlenecks, understand how your agents actually collaborate.
 
 ---
 
@@ -167,76 +225,52 @@ Squads support 7 dependency types. Installation is lazy — nothing installs unt
 
 Each squad keeps its own `node_modules/` and `.venv/`. No conflicts between squads. No global pollution.
 
-```bash
+```
 /squads *install-squad-deps my-squad    # installs everything
 /squads *check-squad-deps my-squad      # checks without installing
 ```
 
 ---
 
-## Validation — 20 checks before you ship
+## Validation — 26 checks before you ship
 
-```bash
+```
 /squads *validate-squad my-squad
 ```
 
-9 blocking checks that must pass: valid squad.yaml, naming conventions, files exist, registration complete.
+12 blocking checks that must pass: valid squad.yaml, naming conventions, files exist, registration complete, trigger config valid.
 
-11 advisory checks that should pass: coding standards, README present, collaboration documented, dependencies installed.
+14 advisory checks that should pass: coding standards, README present, collaboration documented, dependencies installed, flow tracking configured.
 
 Think of it as a linter for your agent team. Catches structural problems before they become runtime problems.
 
 ---
 
-## Works with everything (or nothing)
+## Works everywhere — not just Claude Code
 
-Squads is framework-agnostic. Use it standalone. Use it with oh-my-claudecode, GSD, BMad Method, or whatever orchestration framework you prefer.
+A squad is a directory with markdown files. A skill is a standard that every major AI coding system understands.
 
-| Framework | How it integrates |
-|-----------|------------------|
-| Standalone | Works on its own, no dependencies |
-| oh-my-claudecode | Multi-squad orchestration via `team`, `ralph`, `autopilot` |
-| GSD | Squads as phase executors via `execute-phase` |
-| BMad Method | Compatible as squad provider in BMad pipeline |
-| Custom | Anything that uses Claude Code slash commands |
+This skill follows the [Agent Skills Spec](https://agentskills.io/specification) — the open standard for portable AI agent skills. Install it on Claude Code, Codex CLI, Gemini CLI, Cursor, or any agent that supports the spec. Same squads, same agents, same workflows. The `squads/` directory doesn't care which AI system reads it.
 
-The framework handles coordination. Squads handles team structure. Clean separation.
+Install via [skills.sh](https://skills.sh):
 
----
+```bash
+npx skills add gutomec/squads
+```
 
-## Who this is for
+You're not locked into one vendor. Build your squads once. Run them anywhere.
 
-Solo developers who want structured AI teams without buying a platform.
-
-Small teams who need repeatable agent workflows they can version control.
-
-People building with Claude Code who are tired of one-agent-does-everything chaos.
-
-Anyone who looked at their AI workflow and thought "this needs actual structure."
-
-## Who this is NOT for
-
-People who want a visual drag-and-drop agent builder. This is markdown files in directories. If you need a GUI, look elsewhere.
-
-People who don't use Claude Code. Squads is a Claude Code skill. It runs inside Claude Code. That's the deal.
+| Platform | Status |
+|----------|--------|
+| Claude Code | Full support |
+| Codex CLI | Compatible |
+| Gemini CLI | Compatible |
+| Cursor | Compatible |
+| Any Agent Skills Spec agent | Compatible |
 
 ---
 
-## Works on every AI coding system. Not just Claude Code.
-
-This is the part people miss when they first look at Squads.
-
-A squad is a directory with markdown files. A skill is a standard that every major AI coding system understands. Claude Code, Codex, Antigravity, Gemini CLI — they all speak the same language: skills.
-
-Install the Squads skill on Claude Code. Your squads work. Install it on Codex. Same squads, same agents, same workflows. Move to Antigravity next month. Everything still works. The `squads/` directory doesn't care which AI system reads it. The agents are markdown. The tasks are markdown. The workflows are YAML. Universal formats.
-
-You're not locked into one vendor. You're not rewriting agent definitions every time you switch tools. Build your squads once. Run them anywhere.
-
-That is real portability. Not "works on our platform" portability. Works on every platform portability.
-
----
-
-## There's already a marketplace
+## squads.sh marketplace
 
 You don't have to build every squad from scratch.
 
@@ -254,11 +288,10 @@ Right now you have one AI agent doing everything. No boundaries. No specializati
 
 Squads gives you structured teams. Each agent has a job. Each task has conditions. Each workflow defines collaboration. Everything lives in your repo as portable markdown. Zero context pollution. Zero external dependencies. Zero cost.
 
-Install in 30 seconds. Create your first squad in 60 seconds. Start shipping with a real team instead of one agent pretending.
+Install in one command. Create your first squad in 60 seconds. Start shipping with a real team instead of one agent pretending.
 
 ```bash
-cp -r squads-skill/ .claude/skills/squads/
-mkdir -p squads/
+npx skills add gutomec/squads
 /squads *create-squad my-first-squad
 ```
 
@@ -267,7 +300,7 @@ Go build your team. Happy shipping.
 ---
 
 <p align="center">
-  <a href="#install-30-seconds">Install</a> · <a href="#create-your-first-squad">Create a squad</a> · <a href="#workflows--how-agents-actually-collaborate">Workflows</a> · <a href="#validation--20-checks-before-you-ship">Validation</a>
+  <a href="#install">Install</a> · <a href="#how-it-works">Create a squad</a> · <a href="#workflows--how-agents-collaborate">Workflows</a> · <a href="#triggers--lifecycle-events-for-squads">Triggers</a> · <a href="#flow-tracker--visualize-agent-collaboration">Flow Tracker</a> · <a href="#validation--26-checks-before-you-ship">Validation</a>
 </p>
 
 ## Author
@@ -276,10 +309,10 @@ Luiz Gustavo Vieira Rodrigues ([@gutomec](https://github.com/gutomec))
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE) for details.
 
 The concept of squads as structured multi-agent teams was originally inspired by [AIOX Framework](https://github.com/SynkraAI/aiox-core) (SynkraAI Inc.), itself derived from [BMad Method](https://github.com/bmad-code-org/BMAD-METHOD) (BMad Code, LLC). This is an independent project that reimplements and expands the concept with its own architecture, protocols, and features.
 
 ---
 
-[Português](README.pt.md) | [Español](README.es.md) | [中文](README.zh.md) | [हिन्दी](README.hi.md) | [العربية](README.ar.md)
+[Português](README.pt.md) · [Español](README.es.md) · [中文](README.zh.md) · [हिन्दी](README.hi.md) · [العربية](README.ar.md)

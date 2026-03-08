@@ -68,6 +68,57 @@ dependencies:
 
 See `dependency-management.md` for full install/check protocols.
 
+## Triggers (Optional)
+
+```yaml
+# ─── TRIGGERS (OPTIONAL) ───
+triggers:
+  enabled: true                    # false ou ausente = desabilitado
+  display: inline                  # inline | log | both
+  metrics: context-delta           # context-delta | char-estimate | both
+  events:
+    squad: true                    # trigger no start/end do squad
+    agent: true                    # trigger no start/end de cada agent
+    task: true                     # trigger no start/end de cada task
+  logPath: ".aios/squad-triggers/" # path para log file (se display=log|both)
+```
+
+**Se `triggers` ausente ou `triggers.enabled: false` → NENHUM trigger.** Squads existentes continuam inalterados.
+
+See `triggers-protocol.md` for full trigger format, output templates, and execution protocol.
+
+### Flow Tracking (Optional)
+
+```yaml
+triggers:
+  # ... campos base acima ...
+  flow:                              # Flow tracking (opcional)
+    enabled: true                    # Habilita rastreamento de fluxo de delegação
+    live: true                       # Emite transições em tempo real
+    preview: true                    # Gera preview antes de executar
+    summary: true                    # Gera summary ao final
+    format: ascii                    # ascii | mermaid | a2ui | all
+    a2ui:                            # Config A2UI (se format inclui a2ui ou all)
+      transport: sse                 # sse | websocket
+      port: 3001                     # Porta do SSE server
+      catalogId: "squad-flow"        # ID do catálogo customizado
+```
+
+| Campo | Tipo | Default | Descrição |
+|-------|------|---------|-----------|
+| `flow.enabled` | boolean | `false` | Habilita flow tracking |
+| `flow.live` | boolean | `true` | Emite transições em tempo real |
+| `flow.preview` | boolean | `true` | Gera mapa ASCII/A2UI antes de executar |
+| `flow.summary` | boolean | `true` | Gera diagrama completo ao final |
+| `flow.format` | string | `ascii` | Formato de output: `ascii`, `mermaid`, `a2ui`, `all` |
+| `flow.a2ui.transport` | string | `sse` | Protocolo: `sse` ou `websocket` |
+| `flow.a2ui.port` | number | `3001` | Porta do SSE/WebSocket server |
+| `flow.a2ui.catalogId` | string | `squad-flow` | ID do catálogo A2UI customizado |
+
+**Se `triggers.flow` ausente ou `flow.enabled: false` → triggers normais sem flow tracking.**
+
+See `flow-tracker-protocol.md` for full NDJSON schema, terminal renderer, A2UI renderer, and catalog spec.
+
 ## Optional Sections
 
 ```yaml
