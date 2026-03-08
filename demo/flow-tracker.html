@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squads Flow Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a0a;
+  --bg-card: rgba(18, 18, 18, 0.7);
+  --bg-card-border: rgba(255, 255, 255, 0.06);
+  --amber: #E8A838;
+  --amber-dim: rgba(232, 168, 56, 0.15);
+  --green: #4ade80;
+  --green-dim: rgba(74, 222, 128, 0.12);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96, 165, 250, 0.12);
+  --gray: #6b7280;
+  --gray-dim: rgba(107, 114, 128, 0.15);
+  --red: #f87171;
+  --red-dim: rgba(248, 113, 113, 0.12);
+  --text: #e5e5e5;
+  --text-dim: #737373;
+  --text-muted: #525252;
+  --font: 'Fira Mono', 'Cascadia Mono', 'JetBrains Mono', monospace;
+}
+
+html { font-size: 14px; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(232, 168, 56, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 168, 56, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Radial glow */
+body::after {
+  content: '';
+  position: fixed;
+  top: -30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 60%;
+  background: radial-gradient(ellipse, rgba(232, 168, 56, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ─── HEADER ─── */
+.header {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+  border-bottom: 1px solid var(--bg-card-border);
+}
+
+.ascii-logo {
+  font-size: 0.55rem;
+  line-height: 1.15;
+  color: var(--amber);
+  white-space: pre;
+  display: inline-block;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 20px rgba(232, 168, 56, 0.3);
+}
+
+.subtitle {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ─── CONTROLS ─── */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--bg-card-border);
+}
+
+.btn {
+  font-family: var(--font);
+  font-size: 0.8rem;
+  padding: 0.5rem 1.2rem;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+  letter-spacing: 0.03em;
+}
+
+.btn:hover { border-color: var(--amber); color: var(--amber); }
+
+.btn--primary {
+  background: var(--amber);
+  color: #0a0a0a;
+  border-color: var(--amber);
+  font-weight: 700;
+}
+
+.btn--primary:hover { background: #d4962f; border-color: #d4962f; color: #0a0a0a; }
+.btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap select {
+  font-family: var(--font);
+  font-size: 0.8rem;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  appearance: none;
+  backdrop-filter: blur(8px);
+}
+
+.select-wrap::after {
+  content: '\25BE';
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  pointer-events: none;
+  font-size: 0.7rem;
+}
+
+.select-wrap select:hover { border-color: var(--amber); }
+
+.kbd {
+  font-family: var(--font);
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 3px;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
+
+/* ─── MAIN AREA ─── */
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  min-height: 0;
+}
+
+@media (max-width: 768px) {
+  .main { grid-template-columns: 1fr; }
+}
+
+/* ─── PANELS ─── */
+.panel {
+  padding: 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel:first-child {
+  border-right: 1px solid var(--bg-card-border);
+}
+
+@media (max-width: 768px) {
+  .panel:first-child { border-right: none; border-bottom: 1px solid var(--bg-card-border); }
+}
+
+.panel-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-title::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+/* ─── FLOW GRAPH ─── */
+.graph-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+}
+
+.graph-container svg {
+  width: 100%;
+  height: 100%;
+  max-height: 520px;
+}
+
+/* SVG node styles */
+.node-bg {
+  fill: var(--bg-card);
+  stroke: var(--bg-card-border);
+  stroke-width: 1;
+  rx: 8;
+  transition: fill 0.4s, stroke 0.4s;
+}
+
+.node-bg.active {
+  stroke: var(--blue);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 12px rgba(96, 165, 250, 0.3));
+}
+
+.node-bg.completed {
+  stroke: var(--green);
+  stroke-width: 1;
+  filter: drop-shadow(0 0 8px rgba(74, 222, 128, 0.15));
+}
+
+.node-bg.rejected {
+  stroke: var(--red);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 12px rgba(248, 113, 113, 0.3));
+}
+
+.node-emoji { font-size: 18px; text-anchor: middle; dominant-baseline: central; }
+.node-name { fill: var(--text); font-size: 11px; text-anchor: middle; font-family: var(--font); }
+.node-desc { fill: var(--text-dim); font-size: 9px; text-anchor: middle; font-family: var(--font); }
+.node-duration { fill: var(--green); font-size: 9px; text-anchor: middle; font-family: var(--font); opacity: 0; transition: opacity 0.4s; }
+.node-duration.show { opacity: 1; }
+
+/* Status dot */
+.status-dot {
+  r: 4;
+  fill: var(--gray);
+  transition: fill 0.3s;
+}
+
+.status-dot.active { fill: var(--blue); }
+.status-dot.completed { fill: var(--green); }
+.status-dot.rejected { fill: var(--red); }
+
+/* Pulse animation for active dot */
+@keyframes pulse-ring {
+  0% { r: 4; opacity: 1; }
+  100% { r: 12; opacity: 0; }
+}
+
+.pulse-ring {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 1.5;
+  opacity: 0;
+}
+
+.pulse-ring.active {
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* Edge styles */
+.edge-path {
+  fill: none;
+  stroke: var(--gray);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+  opacity: 0.3;
+  transition: stroke 0.4s, opacity 0.4s;
+}
+
+.edge-path.active {
+  stroke: var(--blue);
+  opacity: 0.8;
+  stroke-dasharray: 8 6;
+  animation: flow-dash 1s linear infinite;
+}
+
+.edge-path.completed {
+  stroke: var(--green);
+  opacity: 0.5;
+  stroke-dasharray: none;
+}
+
+.edge-path.rejected {
+  stroke: var(--red);
+  opacity: 0.8;
+  stroke-dasharray: 4 4;
+}
+
+@keyframes flow-dash {
+  to { stroke-dashoffset: -14; }
+}
+
+.edge-label {
+  fill: var(--text-muted);
+  font-size: 8px;
+  text-anchor: middle;
+  font-family: var(--font);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.edge-label.show { opacity: 1; }
+
+/* Arrowhead */
+.arrow-pending { fill: var(--gray); opacity: 0.3; }
+.arrow-active { fill: var(--blue); opacity: 0.8; }
+.arrow-completed { fill: var(--green); opacity: 0.5; }
+.arrow-rejected { fill: var(--red); opacity: 0.8; }
+
+/* Checkmark */
+.checkmark {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity 0.3s;
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+}
+
+.checkmark.show {
+  opacity: 1;
+  stroke-dashoffset: 0;
+  transition: opacity 0.3s, stroke-dashoffset 0.5s ease-out;
+}
+
+/* ─── TIMELINE ─── */
+.timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  scroll-behavior: smooth;
+}
+
+.timeline::-webkit-scrollbar { width: 4px; }
+.timeline::-webkit-scrollbar-track { background: transparent; }
+.timeline::-webkit-scrollbar-thumb { background: var(--bg-card-border); border-radius: 2px; }
+
+.event {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  backdrop-filter: blur(8px);
+  animation: event-slide-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  opacity: 0;
+  transform: translateX(20px);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+@keyframes event-slide-in {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.event--squad { border-left: 3px solid var(--green); }
+.event--task-start { border-left: 3px solid var(--blue); }
+.event--task-end { border-left: 3px solid var(--green); }
+.event--flow { border-left: 3px solid var(--amber); }
+.event--error { border-left: 3px solid var(--red); }
+.event--summary { border-left: 3px solid var(--amber); background: var(--amber-dim); }
+
+.event-icon { margin-right: 0.4rem; }
+.event-header { color: var(--text); font-weight: 500; }
+.event-detail { color: var(--text-dim); margin-left: 1.6rem; font-size: 0.75rem; }
+.event-time { color: var(--text-muted); font-size: 0.7rem; float: right; }
+
+/* ─── BOTTOM BAR ─── */
+.bottom-bar {
+  border-top: 1px solid var(--bg-card-border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.progress-track {
+  flex: 1;
+  min-width: 200px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--amber), var(--green));
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.progress-fill.moving::after { opacity: 1; }
+
+.metric {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.metric-val {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed;
+  bottom: 5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  color: var(--green);
+  font-family: var(--font);
+  font-size: 0.8rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 100;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ─── EMPTY STATE ─── */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* ─── MODE TOGGLE ─── */
+.mode-toggle {
+  display: flex;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-card);
+  backdrop-filter: blur(8px);
+}
+
+.mode-toggle button {
+  font-family: var(--font);
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+
+.mode-toggle button.active {
+  background: var(--amber);
+  color: #0a0a0a;
+  font-weight: 700;
+}
+
+.mode-toggle button:hover:not(.active) {
+  color: var(--text);
+}
+
+/* ─── LIVE CONNECTION UI ─── */
+.live-controls {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.live-controls.visible { display: flex; }
+
+.live-controls input {
+  font-family: var(--font);
+  font-size: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text);
+  backdrop-filter: blur(8px);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.live-controls input:focus { border-color: var(--amber); }
+.live-controls input::placeholder { color: var(--text-muted); }
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray);
+  transition: background 0.3s;
+}
+
+.status-indicator.connected { background: var(--green); box-shadow: 0 0 6px rgba(74, 222, 128, 0.5); }
+.status-indicator.connecting { background: #facc15; box-shadow: 0 0 6px rgba(250, 204, 21, 0.5); animation: blink 1s infinite; }
+.status-indicator.disconnected { background: var(--red); box-shadow: 0 0 6px rgba(248, 113, 113, 0.4); }
+
+@keyframes blink {
+  50% { opacity: 0.3; }
+}
+
+/* Hide demo controls when in live mode */
+.demo-controls.hidden { display: none; }
+
+/* ─── ARTIFACTS PANEL ─── */
+.artifacts-panel {
+  display: none;
+  border-top: 1px solid var(--bg-card-border);
+  padding: 0.75rem 1rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.artifacts-panel.visible { display: block; }
+
+.artifacts-panel-header {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.artifacts-panel-header::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.artifacts-panel-header .toggle-arrow {
+  margin-left: auto;
+  font-size: 0.6rem;
+  transition: transform 0.2s;
+}
+
+.artifacts-panel-header .toggle-arrow.collapsed { transform: rotate(-90deg); }
+
+.artifacts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.artifacts-list.collapsed { display: none; }
+
+.artifact-link {
+  font-family: var(--font);
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--blue-dim);
+  border-radius: 4px;
+  background: var(--blue-dim);
+  color: var(--blue);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.artifact-link:hover {
+  border-color: var(--blue);
+  background: rgba(96, 165, 250, 0.2);
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <pre class="ascii-logo">
+ ███████╗ ██████╗ ██╗   ██╗ █████╗ ██████╗ ███████╗
+ ██╔════╝██╔═══██╗██║   ██║██╔══██╗██╔══██╗██╔════╝
+ ███████╗██║   ██║██║   ██║███████║██║  ██║███████╗
+ ╚════██║██║▄▄ ██║██║   ██║██╔══██║██║  ██║╚════██║
+ ███████║╚██████╔╝╚██████╔╝██║  ██║██████╔╝███████║
+ ╚══════╝ ╚══▀▀═╝  ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚══════╝</pre>
+    <div class="subtitle">Flow Tracker Demo</div>
+  </header>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button id="mode-demo" class="active" title="Simulated demo">Demo</button>
+      <button id="mode-live" title="Connect to live server">Live</button>
+    </div>
+
+    <!-- Demo controls (shown in demo mode) -->
+    <div class="demo-controls" id="demo-controls">
+      <button class="btn btn--primary" id="btn-start">Start</button>
+      <button class="btn" id="btn-pause" disabled>Pause <span class="kbd">Space</span></button>
+      <button class="btn" id="btn-reset">Reset <span class="kbd">R</span></button>
+      <div class="select-wrap">
+        <select id="sel-speed">
+          <option value="1">1x speed</option>
+          <option value="2">2x speed</option>
+          <option value="5" selected>5x speed</option>
+          <option value="10">10x speed</option>
+        </select>
+      </div>
+      <div class="select-wrap">
+        <select id="sel-workflow">
+          <option value="nirvana-squad-creator">nirvana-squad-creator / main-pipeline</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Live controls (shown in live mode) -->
+    <div class="live-controls" id="live-controls">
+      <input type="text" id="live-squad" value="nirvana-squad-creator" placeholder="Squad name" style="width: 180px;" />
+      <input type="text" id="live-server" value="http://localhost:3001" placeholder="Server URL" style="width: 200px;" />
+      <button class="btn btn--primary" id="btn-connect">Connect</button>
+      <button class="btn" id="btn-disconnect" style="display:none;">Disconnect</button>
+      <div class="connection-status">
+        <div class="status-indicator" id="conn-indicator"></div>
+        <span id="conn-label">Disconnected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- LEFT: FLOW GRAPH -->
+    <div class="panel">
+      <div class="panel-title">Flow Graph</div>
+      <div class="graph-container">
+        <svg id="flow-svg" viewBox="0 0 560 340" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <!-- Arrow markers -->
+            <marker id="arrow-pending" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6" class="arrow-pending"/>
+            </marker>
+            <marker id="arrow-active" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6" class="arrow-active"/>
+            </marker>
+            <marker id="arrow-completed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6" class="arrow-completed"/>
+            </marker>
+            <marker id="arrow-rejected" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6" class="arrow-rejected"/>
+            </marker>
+          </defs>
+
+          <!-- Edges (drawn first, behind nodes) -->
+          <g id="edges-layer"></g>
+
+          <!-- Nodes -->
+          <g id="nodes-layer"></g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- RIGHT: TIMELINE -->
+    <div class="panel">
+      <div class="panel-title">Event Timeline</div>
+      <div class="timeline" id="timeline">
+        <div class="empty-state" id="empty-msg">Press Start to begin simulation</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARTIFACTS PANEL (Live mode only) -->
+  <div class="artifacts-panel" id="artifacts-panel">
+    <div class="artifacts-panel-header" id="artifacts-header">
+      Artifacts <span class="toggle-arrow" id="artifacts-arrow">&#9662;</span>
+    </div>
+    <div class="artifacts-list" id="artifacts-list"></div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="metric"><span class="metric-val" id="m-agents">0/8</span> agents</div>
+    <div class="metric"><span class="metric-val" id="m-percent">0%</span></div>
+    <div class="metric"><span class="metric-val" id="m-elapsed">0m 00s</span> elapsed</div>
+    <div class="metric">ctx <span class="metric-val" id="m-context">+0%</span></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───
+// U-turn layout: top row L->R (4 nodes), bottom row R->L (4 nodes)
+const NODES = [
+  { id: 'analyzer',         emoji: '\u{1F50D}', name: 'nsc-analyzer',         desc: 'Analyze Requirements',        dur: 90,  ctx: 10, x: 80,  y: 60  },
+  { id: 'agent-creator',    emoji: '\u{1F916}', name: 'nsc-agent-creator',    desc: 'Create Agent Definitions',    dur: 120, ctx: 15, x: 220, y: 60  },
+  { id: 'task-creator',     emoji: '\u{1F4CB}', name: 'nsc-task-creator',     desc: 'Create Task Definitions',     dur: 105, ctx: 12, x: 360, y: 60  },
+  { id: 'workflow-creator', emoji: '\u{1F504}', name: 'nsc-workflow-creator', desc: 'Create Workflows',            dur: 90,  ctx: 10, x: 500, y: 60  },
+  { id: 'optimizer',        emoji: '\u{26A1}',  name: 'nsc-optimizer',        desc: 'Optimize Squad',              dur: 75,  ctx: 8,  x: 500, y: 220 },
+  { id: 'validator',        emoji: '\u{2705}',  name: 'nsc-validator',        desc: 'Validate 6 Categories',       dur: 45,  ctx: 5,  x: 360, y: 220 },
+  { id: 'readme-creator',   emoji: '\u{1F4DD}', name: 'nsc-readme-creator',   desc: '6-Language READMEs',          dur: 60,  ctx: 6,  x: 220, y: 220 },
+  { id: 'publisher',        emoji: '\u{1F680}', name: 'nsc-publisher',        desc: 'Deploy + Publish',            dur: 30,  ctx: 3,  x: 80,  y: 220 },
+];
+
+const EDGES = [
+  { from: 'analyzer',         to: 'agent-creator',    label: 'analysis-report' },
+  { from: 'agent-creator',    to: 'task-creator',     label: 'agents/*.md' },
+  { from: 'task-creator',     to: 'workflow-creator', label: 'tasks/*.md' },
+  { from: 'workflow-creator', to: 'optimizer',        label: 'workflows/*.yaml' },
+  { from: 'optimizer',        to: 'validator',        label: 'optimization-report' },
+  { from: 'validator',        to: 'readme-creator',   label: 'validation-report' },
+  { from: 'readme-creator',   to: 'publisher',        label: 'README.md' },
+];
+
+const NODE_W = 120, NODE_H = 60;
+
+// ─── STATE ───
+let state = 'idle'; // idle | running | paused | done
+let speed = 5;
+let simTime = 0;
+let elapsed = 0;
+let lastFrame = 0;
+let completedCount = 0;
+let totalContext = 0;
+let nodeStates = {};
+let edgeStates = {};
+let animFrameId = null;
+let steps = [];
+let stepIdx = 0;
+
+// ─── DOM ───
+const $ = s => document.querySelector(s);
+const btnStart = $('#btn-start');
+const btnPause = $('#btn-pause');
+const btnReset = $('#btn-reset');
+const selSpeed = $('#sel-speed');
+const timeline = $('#timeline');
+const emptyMsg = $('#empty-msg');
+const progressFill = $('#progress-fill');
+const mAgents = $('#m-agents');
+const mPercent = $('#m-percent');
+const mElapsed = $('#m-elapsed');
+const mContext = $('#m-context');
+const toast = $('#toast');
+
+// ─── INIT SVG ───
+function buildSVG() {
+  const edgesLayer = document.getElementById('edges-layer');
+  const nodesLayer = document.getElementById('nodes-layer');
+  edgesLayer.innerHTML = '';
+  nodesLayer.innerHTML = '';
+
+  // Draw edges
+  EDGES.forEach(e => {
+    const from = NODES.find(n => n.id === e.from);
+    const to = NODES.find(n => n.id === e.to);
+    let d, labelX, labelY;
+
+    if (from.y !== to.y) {
+      // U-turn: vertical drop (workflow-creator -> optimizer)
+      const x1 = from.x, y1 = from.y + NODE_H / 2;
+      const x2 = to.x, y2 = to.y - NODE_H / 2;
+      const midY = (y1 + y2) / 2;
+      d = `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`;
+      labelX = (x1 + x2) / 2 + 12;
+      labelY = midY;
+    } else {
+      // Horizontal: same row
+      const x1 = from.x + NODE_W / 2, y1 = from.y;
+      const x2 = to.x - NODE_W / 2, y2 = to.y;
+      if (x1 < x2) {
+        // Left to right (top row)
+        const midX = (x1 + x2) / 2;
+        d = `M${x1},${y1} C${midX},${y1} ${midX},${y2} ${x2},${y2}`;
+      } else {
+        // Right to left (bottom row)
+        const midX = (x1 + x2) / 2;
+        d = `M${x1},${y1} C${midX},${y1} ${midX},${y2} ${x2},${y2}`;
+      }
+      labelX = (x1 + x2) / 2;
+      labelY = y1 - 8;
+    }
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', 'edge-path');
+    path.setAttribute('marker-end', 'url(#arrow-pending)');
+    path.id = `edge-${e.from}-${e.to}`;
+    edgesLayer.appendChild(path);
+
+    const labelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    labelEl.setAttribute('x', labelX);
+    labelEl.setAttribute('y', labelY);
+    labelEl.setAttribute('class', 'edge-label');
+    labelEl.textContent = e.label;
+    labelEl.id = `elabel-${e.from}-${e.to}`;
+    edgesLayer.appendChild(labelEl);
+  });
+
+  // Draw nodes
+  NODES.forEach(n => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.id = `node-${n.id}`;
+    const rx = n.x - NODE_W / 2, ry = n.y - NODE_H / 2;
+
+    // Background rect
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', rx);
+    rect.setAttribute('y', ry);
+    rect.setAttribute('width', NODE_W);
+    rect.setAttribute('height', NODE_H);
+    rect.setAttribute('class', 'node-bg');
+    rect.id = `nbg-${n.id}`;
+    g.appendChild(rect);
+
+    // Pulse ring
+    const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    ring.setAttribute('cx', rx + NODE_W - 10);
+    ring.setAttribute('cy', ry + 10);
+    ring.setAttribute('class', 'pulse-ring');
+    ring.id = `pulse-${n.id}`;
+    g.appendChild(ring);
+
+    // Status dot
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', rx + NODE_W - 10);
+    dot.setAttribute('cy', ry + 10);
+    dot.setAttribute('class', 'status-dot');
+    dot.id = `dot-${n.id}`;
+    g.appendChild(dot);
+
+    // Emoji
+    const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    emoji.setAttribute('x', rx + 18);
+    emoji.setAttribute('y', n.y + 1);
+    emoji.setAttribute('class', 'node-emoji');
+    emoji.textContent = n.emoji;
+    g.appendChild(emoji);
+
+    // Name
+    const name = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    name.setAttribute('x', n.x + 8);
+    name.setAttribute('y', n.y - 4);
+    name.setAttribute('class', 'node-name');
+    name.textContent = n.name;
+    g.appendChild(name);
+
+    // Desc
+    const desc = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    desc.setAttribute('x', n.x + 8);
+    desc.setAttribute('y', n.y + 10);
+    desc.setAttribute('class', 'node-desc');
+    desc.textContent = n.desc;
+    g.appendChild(desc);
+
+    // Duration label
+    const durLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    durLabel.setAttribute('x', n.x);
+    durLabel.setAttribute('y', n.y + NODE_H / 2 + 14);
+    durLabel.setAttribute('class', 'node-duration');
+    durLabel.id = `dur-${n.id}`;
+    durLabel.textContent = formatDur(n.dur);
+    g.appendChild(durLabel);
+
+    // Checkmark
+    const check = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const cx = rx + NODE_W - 10, cy = ry + 10;
+    check.setAttribute('d', `M${cx - 4},${cy} L${cx - 1},${cy + 3} L${cx + 5},${cy - 4}`);
+    check.setAttribute('class', 'checkmark');
+    check.id = `check-${n.id}`;
+    g.appendChild(check);
+
+    nodesLayer.appendChild(g);
+  });
+}
+
+// ─── HELPERS ───
+function formatDur(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}m ${String(s).padStart(2, '0')}s`;
+}
+
+function formatTime(sec) {
+  const h = 10, m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function setNodeState(id, st) {
+  nodeStates[id] = st;
+  const bg = document.getElementById(`nbg-${id}`);
+  const dot = document.getElementById(`dot-${id}`);
+  const pulse = document.getElementById(`pulse-${id}`);
+  const dur = document.getElementById(`dur-${id}`);
+  const check = document.getElementById(`check-${id}`);
+
+  bg.className.baseVal = 'node-bg' + (st !== 'pending' ? ' ' + st : '');
+  dot.className.baseVal = 'status-dot' + (st !== 'pending' ? ' ' + st : '');
+  pulse.className.baseVal = 'pulse-ring' + (st === 'active' ? ' active' : '');
+
+  if (st === 'completed') {
+    dur.className.baseVal = 'node-duration show';
+    check.className.baseVal = 'checkmark show';
+    dot.style.display = 'none';
+  } else {
+    dur.className.baseVal = 'node-duration';
+    check.className.baseVal = 'checkmark';
+    dot.style.display = '';
+  }
+}
+
+function setEdgeState(from, to, st) {
+  const key = `${from}-${to}`;
+  edgeStates[key] = st;
+  const path = document.getElementById(`edge-${key}`);
+  const label = document.getElementById(`elabel-${key}`);
+  if (!path) return;
+
+  path.className.baseVal = 'edge-path' + (st !== 'pending' ? ' ' + st : '');
+  path.setAttribute('marker-end', `url(#arrow-${st})`);
+  if (label) label.className.baseVal = 'edge-label' + (st !== 'pending' ? ' show' : '');
+}
+
+function addEvent(type, icon, header, details, time) {
+  const em = document.getElementById('empty-msg');
+  if (em) em.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = `event event--${type}`;
+  let html = `<span class="event-time">${time}</span>`;
+  html += `<div class="event-header"><span class="event-icon">${icon}</span>${header}</div>`;
+  details.forEach(d => { html += `<div class="event-detail">${d}</div>`; });
+  div.innerHTML = html;
+  timeline.appendChild(div);
+  requestAnimationFrame(() => { timeline.scrollTop = timeline.scrollHeight; });
+}
+
+function updateMetrics() {
+  const total = NODES.length;
+  const pct = Math.round((completedCount / total) * 100);
+  mAgents.textContent = `${completedCount}/${total}`;
+  mPercent.textContent = `${pct}%`;
+  mElapsed.textContent = formatDur(Math.floor(elapsed));
+  mContext.textContent = `+${totalContext}%`;
+  progressFill.style.width = `${pct}%`;
+  progressFill.className = 'progress-fill' + (state === 'running' ? ' moving' : '');
+}
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4000);
+}
+
+// ─── SIMULATION STEPS ───
+function buildSteps() {
+  steps = [];
+  let t = 0;
+
+  // Helper: generate a sequential agent block
+  function addAgentBlock(nodeId, taskName, fromEdge, toEdge, agentNum, handoffLabel) {
+    const node = NODES.find(n => n.id === nodeId);
+
+    // Flow transition from previous agent
+    if (fromEdge) {
+      steps.push({ t, action: () => {
+        setEdgeState(fromEdge.from, fromEdge.to, 'active');
+        setNodeState(nodeId, 'active');
+        const pBar = '\u2588'.repeat(agentNum - 1) + '\u2591'.repeat(8 - agentNum + 1);
+        addEvent('flow', '\u{1F504}', `[FLOW:nsc] ${fromEdge.fromName} \u2500\u2500\u2192 ${node.name}`, [
+          `Handoff: ${handoffLabel}`,
+          `Progress: ${pBar} ${agentNum - 1}/8 (${Math.round((agentNum - 1) / 8 * 100)}%)`
+        ], formatTime(t));
+      }});
+      t += 3;
+      steps.push({ t, action: () => {
+        setEdgeState(fromEdge.from, fromEdge.to, 'completed');
+      }});
+    } else {
+      // First agent — squad activation
+      steps.push({ t, action: () => {
+        addEvent('squad', '\u{1F680}', `[SQUAD:nsc] nirvana-squad-creator v1.0.0 activated`, [
+          `Agent: ${node.emoji} ${node.name}`,
+          `Mission: ${node.desc}`
+        ], formatTime(t));
+        setNodeState(nodeId, 'active');
+      }});
+    }
+
+    t += 5;
+    steps.push({ t, action: () => {
+      addEvent('task-start', '\u{26A1}', `[TASK:nsc] *${taskName} started`, [`Agent: ${node.name}`], formatTime(t));
+    }});
+
+    t += node.dur;
+    const capturedCount = agentNum;
+    steps.push({ t, action: () => {
+      setNodeState(nodeId, 'completed');
+      completedCount = capturedCount;
+      totalContext += node.ctx;
+      addEvent('task-end', '\u{2705}', `[TASK:nsc] ${node.name} completed *${taskName}`, [
+        `Duration: ${formatDur(node.dur)}`,
+        `Context: +${node.ctx}%`
+      ], formatTime(t));
+    }});
+
+    t += 3;
+  }
+
+  // 1. Analyzer
+  addAgentBlock('analyzer', 'analyze-requirements', null, null, 1, null);
+
+  // 2. Agent Creator
+  addAgentBlock('agent-creator', 'create-agents',
+    { from: 'analyzer', to: 'agent-creator', fromName: 'nsc-analyzer' },
+    null, 2, 'analysis-report.json');
+
+  // 3. Task Creator
+  addAgentBlock('task-creator', 'create-tasks',
+    { from: 'agent-creator', to: 'task-creator', fromName: 'nsc-agent-creator' },
+    null, 3, 'agents/*.md');
+
+  // 4. Workflow Creator
+  addAgentBlock('workflow-creator', 'create-workflows',
+    { from: 'task-creator', to: 'workflow-creator', fromName: 'nsc-task-creator' },
+    null, 4, 'tasks/*.md');
+
+  // 5. Optimizer
+  addAgentBlock('optimizer', 'optimize-squad',
+    { from: 'workflow-creator', to: 'optimizer', fromName: 'nsc-workflow-creator' },
+    null, 5, 'workflows/*.yaml');
+
+  // 6. Validator
+  addAgentBlock('validator', 'validate-squad',
+    { from: 'optimizer', to: 'validator', fromName: 'nsc-optimizer' },
+    null, 6, 'optimization-report.md');
+
+  // 7. README Creator
+  addAgentBlock('readme-creator', 'create-multilingual-readme',
+    { from: 'validator', to: 'readme-creator', fromName: 'nsc-validator' },
+    null, 7, 'validation-report.md');
+
+  // 8. Publisher
+  addAgentBlock('publisher', 'deploy-squad',
+    { from: 'readme-creator', to: 'publisher', fromName: 'nsc-readme-creator' },
+    null, 8, 'README.md (6 langs)');
+
+  // Summary
+  t += 5;
+  const totalDur = t;
+  steps.push({ t, action: () => {
+    const totalCtx = NODES.reduce((a, n) => a + n.ctx, 0);
+    addEvent('summary', '\u{1F3C1}', '[SQUAD:nsc] nirvana-squad-creator pipeline COMPLETE', [
+      `Total Duration: ${formatDur(totalDur)}`,
+      `Agents Executed: 8/8`,
+      `Context Delta: +${totalCtx}%`,
+      `Review Iterations: 0`,
+      `Parallel Branches: 0 (sequential pipeline)`,
+      `Status: SUCCESS`
+    ], formatTime(t));
+    state = 'done';
+    btnStart.disabled = true;
+    btnPause.disabled = true;
+    progressFill.classList.remove('moving');
+    showToast('\u{2705} Pipeline complete \u2014 all 8 agents executed successfully');
+  }});
+
+  return steps;
+}
+
+// ─── GAME LOOP ───
+function tick(timestamp) {
+  if (state !== 'running') return;
+  if (!lastFrame) lastFrame = timestamp;
+  const dt = (timestamp - lastFrame) / 1000 * speed;
+  lastFrame = timestamp;
+  simTime += dt;
+  elapsed += dt;
+
+  // Process steps
+  while (stepIdx < steps.length && simTime >= steps[stepIdx].t) {
+    steps[stepIdx].action();
+    stepIdx++;
+    updateMetrics();
+  }
+
+  updateMetrics();
+
+  if (state === 'running') {
+    animFrameId = requestAnimationFrame(tick);
+  }
+}
+
+// ─── CONTROLS ───
+function startSim() {
+  if (state === 'done') resetSim();
+  if (state === 'idle') {
+    buildSteps();
+    simTime = 0;
+    elapsed = 0;
+    stepIdx = 0;
+    completedCount = 0;
+    totalContext = 0;
+    lastFrame = 0;
+  }
+  state = 'running';
+  btnStart.disabled = true;
+  btnPause.disabled = false;
+  btnPause.textContent = 'Pause ';
+  const kbd = document.createElement('span');
+  kbd.className = 'kbd';
+  kbd.textContent = 'Space';
+  btnPause.appendChild(kbd);
+  animFrameId = requestAnimationFrame(tick);
+}
+
+function pauseSim() {
+  if (state === 'running') {
+    state = 'paused';
+    lastFrame = 0;
+    btnPause.innerHTML = 'Resume <span class="kbd">Space</span>';
+    btnStart.disabled = false;
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+  } else if (state === 'paused') {
+    startSim();
+  }
+}
+
+function resetSim() {
+  state = 'idle';
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  simTime = 0;
+  elapsed = 0;
+  stepIdx = 0;
+  completedCount = 0;
+  totalContext = 0;
+  lastFrame = 0;
+
+  NODES.forEach(n => setNodeState(n.id, 'pending'));
+  EDGES.forEach(e => setEdgeState(e.from, e.to, 'pending'));
+
+  timeline.innerHTML = '<div class="empty-state" id="empty-msg">Press Start to begin simulation</div>';
+
+  btnStart.disabled = false;
+  btnPause.disabled = true;
+  btnPause.innerHTML = 'Pause <span class="kbd">Space</span>';
+  updateMetrics();
+  progressFill.style.width = '0%';
+  progressFill.classList.remove('moving');
+}
+
+btnStart.addEventListener('click', startSim);
+btnPause.addEventListener('click', pauseSim);
+btnReset.addEventListener('click', resetSim);
+selSpeed.addEventListener('change', e => { speed = parseInt(e.target.value); });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); if (state === 'running') pauseSim(); else if (state === 'paused' || state === 'idle') startSim(); }
+  if (e.code === 'KeyR' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); resetSim(); }
+});
+
+// ─── INIT ───
+buildSVG();
+NODES.forEach(n => setNodeState(n.id, 'pending'));
+EDGES.forEach(e => setEdgeState(e.from, e.to, 'pending'));
+updateMetrics();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// LIVE MODE — SSE Consumer + Dynamic Graph
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Mode state ──────────────────────────────────────────────────────────────
+
+let currentMode = 'demo'; // 'demo' | 'live'
+let liveTracker = null;
+
+const modeDemo = document.getElementById('mode-demo');
+const modeLive = document.getElementById('mode-live');
+const demoControls = document.getElementById('demo-controls');
+const liveControls = document.getElementById('live-controls');
+const btnConnect = document.getElementById('btn-connect');
+const btnDisconnect = document.getElementById('btn-disconnect');
+const liveSquadInput = document.getElementById('live-squad');
+const liveServerInput = document.getElementById('live-server');
+const connIndicator = document.getElementById('conn-indicator');
+const connLabel = document.getElementById('conn-label');
+const artifactsPanel = document.getElementById('artifacts-panel');
+const artifactsList = document.getElementById('artifacts-list');
+const artifactsHeader = document.getElementById('artifacts-header');
+const artifactsArrow = document.getElementById('artifacts-arrow');
+
+// ─── Mode switching ──────────────────────────────────────────────────────────
+
+function switchMode(mode) {
+  if (currentMode === mode) return;
+  currentMode = mode;
+
+  // Update toggle buttons
+  modeDemo.classList.toggle('active', mode === 'demo');
+  modeLive.classList.toggle('active', mode === 'live');
+
+  // Show/hide control groups
+  demoControls.classList.toggle('hidden', mode === 'live');
+  liveControls.classList.toggle('visible', mode === 'live');
+
+  if (mode === 'demo') {
+    // Switching to demo: disconnect live, restore demo SVG
+    if (liveTracker) {
+      liveTracker.disconnect();
+      liveTracker = null;
+    }
+    artifactsPanel.classList.remove('visible');
+    resetSim();
+  } else {
+    // Switching to live: pause any running sim, clear timeline
+    if (state === 'running') pauseSim();
+    state = 'idle';
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    timeline.innerHTML = '<div class="empty-state" id="empty-msg">Press Connect to start live tracking</div>';
+    // Rebuild demo SVG as placeholder (will be replaced by flow-preview)
+    buildSVG();
+    NODES.forEach(n => setNodeState(n.id, 'pending'));
+    EDGES.forEach(e => setEdgeState(e.from, e.to, 'pending'));
+  }
+}
+
+modeDemo.addEventListener('click', () => switchMode('demo'));
+modeLive.addEventListener('click', () => switchMode('live'));
+
+// ─── Artifacts panel toggle ──────────────────────────────────────────────────
+
+let artifactsCollapsed = false;
+
+artifactsHeader.addEventListener('click', () => {
+  artifactsCollapsed = !artifactsCollapsed;
+  artifactsList.classList.toggle('collapsed', artifactsCollapsed);
+  artifactsArrow.classList.toggle('collapsed', artifactsCollapsed);
+});
+
+// ─── Connection status helpers ───────────────────────────────────────────────
+
+function setConnectionStatus(status, label) {
+  connIndicator.className = 'status-indicator ' + status;
+  connLabel.textContent = label || status;
+}
+
+// ─── LiveFlowTracker Class ───────────────────────────────────────────────────
+
+class LiveFlowTracker {
+  constructor(serverUrl, squadName) {
+    this.serverUrl = serverUrl.replace(/\/$/, '');
+    this.squadName = squadName;
+    this.eventSource = null;
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 10;
+    this.reconnectTimer = null;
+    this.liveNodes = [];
+    this.liveEdges = [];
+    this.liveNodeStates = {};
+    this.liveEdgeStates = {};
+    this.liveCompletedCount = 0;
+    this.liveTotalAgents = 0;
+    this.liveTotalContext = 0;
+    this.liveStartTime = Date.now();
+    this.liveElapsedTimer = null;
+    this.liveArtifacts = [];
+  }
+
+  connect() {
+    if (this.eventSource) this.disconnect();
+
+    setConnectionStatus('connecting', 'Connecting...');
+    btnConnect.style.display = 'none';
+    btnDisconnect.style.display = '';
+
+    const sseUrl = `${this.serverUrl}/flow/${this.squadName}`;
+    this.eventSource = new EventSource(sseUrl);
+    this.liveStartTime = Date.now();
+
+    // Start elapsed timer
+    this.liveElapsedTimer = setInterval(() => {
+      if (currentMode === 'live') {
+        const elapsed = Math.floor((Date.now() - this.liveStartTime) / 1000);
+        mElapsed.textContent = formatDur(elapsed);
+      }
+    }, 1000);
+
+    this.eventSource.addEventListener('connected', (e) => {
+      this.reconnectAttempts = 0;
+      setConnectionStatus('connected', 'Connected');
+      const data = JSON.parse(e.data);
+      if (data.historyCount > 0) {
+        const em = document.getElementById('empty-msg');
+        if (em) em.style.display = 'none';
+      }
+    });
+
+    this.eventSource.addEventListener('history', (e) => {
+      const data = JSON.parse(e.data);
+      this._processEvent(data, true);
+    });
+
+    this.eventSource.addEventListener('trigger', (e) => {
+      const data = JSON.parse(e.data);
+      this._processEvent(data, false);
+    });
+
+    this.eventSource.addEventListener('ping', () => {
+      // Keep-alive, no action needed
+    });
+
+    this.eventSource.onerror = () => {
+      if (this.eventSource.readyState === EventSource.CLOSED) {
+        setConnectionStatus('disconnected', 'Disconnected');
+        this._scheduleReconnect();
+      } else {
+        setConnectionStatus('connecting', 'Reconnecting...');
+      }
+    };
+
+    this.eventSource.onopen = () => {
+      this.reconnectAttempts = 0;
+      setConnectionStatus('connected', 'Connected');
+    };
+  }
+
+  disconnect() {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.liveElapsedTimer) {
+      clearInterval(this.liveElapsedTimer);
+      this.liveElapsedTimer = null;
+    }
+    if (this.eventSource) {
+      this.eventSource.close();
+      this.eventSource = null;
+    }
+    setConnectionStatus('disconnected', 'Disconnected');
+    btnConnect.style.display = '';
+    btnDisconnect.style.display = 'none';
+  }
+
+  _scheduleReconnect() {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      setConnectionStatus('disconnected', 'Failed (max retries)');
+      btnConnect.style.display = '';
+      btnDisconnect.style.display = 'none';
+      return;
+    }
+    // Exponential backoff: 1s, 2s, 4s, 8s... max 30s
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+    this.reconnectAttempts++;
+    setConnectionStatus('connecting', `Reconnecting in ${Math.round(delay / 1000)}s...`);
+    this.reconnectTimer = setTimeout(() => {
+      this.connect();
+    }, delay);
+  }
+
+  // ─── Event processing ────────────────────────────────────────────────────
+
+  _processEvent(data, isHistory) {
+    const time = data.timestamp
+      ? new Date(data.timestamp).toLocaleTimeString('en-US', { hour12: false })
+      : '--:--:--';
+
+    switch (data.type) {
+      case 'squad-start':
+        this._onSquadStart(data, time, isHistory);
+        break;
+      case 'flow-preview':
+        this._onFlowPreview(data, time, isHistory);
+        break;
+      case 'agent-start':
+        this._onAgentStart(data, time, isHistory);
+        break;
+      case 'agent-end':
+        this._onAgentEnd(data, time, isHistory);
+        break;
+      case 'task-start':
+        this._onTaskStart(data, time, isHistory);
+        break;
+      case 'task-end':
+        this._onTaskEnd(data, time, isHistory);
+        break;
+      case 'flow-transition':
+        this._onFlowTransition(data, time, isHistory);
+        break;
+      case 'flow-complete':
+        this._onFlowComplete(data, time, isHistory);
+        break;
+      case 'flow-error':
+        this._onFlowError(data, time, isHistory);
+        break;
+      case 'flow-loop':
+        this._onFlowLoop(data, time, isHistory);
+        break;
+      case 'squad-end':
+        this._onSquadEnd(data, time, isHistory);
+        break;
+    }
+  }
+
+  _onSquadStart(data, time) {
+    this.liveTotalAgents = data.totalAgents || 8;
+    this.liveCompletedCount = 0;
+    this.liveTotalContext = 0;
+    this.liveArtifacts = [];
+    this.liveStartTime = Date.now();
+    this._updateLiveMetrics();
+
+    // Clear timeline
+    timeline.innerHTML = '';
+    artifactsList.innerHTML = '';
+
+    addEvent('squad', '\u{1F680}', `[SQUAD] ${data.squad} activated`,
+      [`Agents: ${data.totalAgents || '?'}`, `Version: ${data.version || '?'}`], time);
+  }
+
+  _onFlowPreview(data, time) {
+    if (data.nodes && data.edges) {
+      this.liveNodes = data.nodes;
+      this.liveEdges = data.edges;
+      this._buildDynamicGraph(data.nodes, data.edges);
+    }
+  }
+
+  _onAgentStart(data, time) {
+    const nodeId = this._resolveNodeId(data.agent);
+    if (nodeId) {
+      try { setNodeState(nodeId, 'active'); } catch {}
+    }
+    const iterLabel = data.iteration ? ` (iter ${data.iteration})` : '';
+    addEvent('task-start', '\u{26A1}', `[AGENT] ${data.agent} started${iterLabel}`,
+      [`Task: ${data.task || '?'}`], time);
+  }
+
+  _onAgentEnd(data, time) {
+    const nodeId = this._resolveNodeId(data.agent);
+    if (nodeId) {
+      try {
+        setNodeState(nodeId, 'completed');
+        const durEl = document.getElementById(`dur-${nodeId}`);
+        if (durEl && data.duration) {
+          durEl.textContent = formatDur(data.duration);
+        }
+      } catch {}
+    }
+    this.liveCompletedCount++;
+    if (data.context) this.liveTotalContext += data.context;
+    this._updateLiveMetrics();
+
+    addEvent('task-end', '\u{2705}', `[AGENT] ${data.agent} completed`,
+      [`Duration: ${data.duration ? formatDur(data.duration) : '?'}`,
+       `Context: +${data.context || 0}%`], time);
+  }
+
+  _onTaskStart(data, time) {
+    const iterLabel = data.iteration ? ` (iter ${data.iteration})` : '';
+    addEvent('task-start', '\u{26A1}', `[TASK] *${data.task} started${iterLabel}`,
+      [`Agent: ${data.agent}`], time);
+  }
+
+  _onTaskEnd(data, time) {
+    const details = [`Duration: ${data.duration ? formatDur(data.duration) : '?'}`];
+    if (data.context) details.push(`Context: +${data.context}%`);
+    if (data.result) details.push(`Result: ${data.result.toUpperCase()}`);
+    if (data.reason) details.push(`Reason: ${data.reason}`);
+    if (data.artifacts && data.artifacts.length > 0) {
+      details.push(`Artifacts: ${data.artifacts.join(', ')}`);
+      // Add to artifacts panel
+      this._addArtifacts(data.artifacts, data.agent);
+    }
+
+    const iterLabel = data.iteration ? ` (iter ${data.iteration})` : '';
+    addEvent('task-end', '\u{2705}', `[TASK] *${data.task} completed${iterLabel}`, details, time);
+  }
+
+  _onFlowTransition(data, time) {
+    // Activate edge
+    const fromId = this._resolveNodeId(data.from);
+    const toId = this._resolveNodeId(data.to);
+    if (fromId && toId) {
+      try {
+        setEdgeState(fromId, toId, 'active');
+        // Also set the target node as active
+        setNodeState(toId, 'active');
+      } catch {}
+
+      // After a short delay, mark edge as completed
+      setTimeout(() => {
+        try { setEdgeState(fromId, toId, 'completed'); } catch {}
+      }, 1500);
+    }
+
+    const progressText = data.progress
+      ? `Progress: ${data.progress.completed}/${data.progress.total} (${data.progress.percent}%)`
+      : '';
+
+    addEvent('flow', '\u{1F504}', `[FLOW] ${data.from} \u2500\u2500\u2192 ${data.to}`,
+      [data.handoff ? `Handoff: ${data.handoff}` : '', progressText].filter(Boolean), time);
+
+    if (data.progress) {
+      this._updateLiveMetrics(data.progress);
+    }
+  }
+
+  _onFlowComplete(data, time) {
+    addEvent('summary', '\u{1F3C1}', `[SQUAD] ${data.squad || this.squadName} pipeline COMPLETE`, [
+      `Total Duration: ${data.totalDuration ? formatDur(data.totalDuration) : '?'}`,
+      `Agents Executed: ${data.agentsExecuted}/${data.totalAgents}`,
+      `Context Delta: +${data.contextDelta || 0}%`,
+      `Review Iterations: ${data.reviewIterations || 0} (${data.rejections || 0} rejections)`,
+      `Parallel Branches: ${data.parallelBranches || 0}`,
+      `Artifacts: ${data.artifacts || 0}`,
+      `Status: SUCCESS`,
+    ], time);
+
+    showToast('\u{2705} Pipeline complete \u2014 all agents executed successfully');
+  }
+
+  _onFlowError(data, time) {
+    const nodeId = this._resolveNodeId(data.agent);
+    if (nodeId) {
+      try { setNodeState(nodeId, 'rejected'); } catch {}
+    }
+
+    addEvent('error', '\u{26A0}\u{FE0F}', `[REVIEW] ${data.agent} REJECTED`,
+      [`Reason: ${data.reason || '?'}`,
+       `Action: ${data.action || '?'}`,
+       `Iteration: ${data.iteration || '?'}/${data.maxIterations || '?'}`], time);
+  }
+
+  _onFlowLoop(data, time) {
+    const nodeId = this._resolveNodeId(data.agent);
+    if (nodeId) {
+      try { setNodeState(nodeId, 'active'); } catch {}
+    }
+
+    addEvent('flow', '\u{1F504}', `[LOOP] ${data.agent} iteration ${data.iteration}`,
+      [`Reason: ${data.reason || '?'}`,
+       `Max iterations: ${data.maxIterations || '?'}`], time);
+  }
+
+  _onSquadEnd(data, time) {
+    addEvent('squad', '\u{1F3C1}', `[SQUAD] ${data.squad} finished`,
+      [`Status: ${(data.status || 'unknown').toUpperCase()}`,
+       `Duration: ${data.totalDuration ? formatDur(data.totalDuration) : '?'}`], time);
+  }
+
+  // ─── Dynamic graph building ──────────────────────────────────────────────
+
+  _buildDynamicGraph(nodes, edges) {
+    // Auto-layout: group by order, place side-by-side for parallel nodes
+    const groups = {};
+    nodes.forEach(n => {
+      const order = n.order !== undefined ? n.order : 0;
+      if (!groups[order]) groups[order] = [];
+      groups[order].push(n);
+    });
+
+    const orderKeys = Object.keys(groups).map(Number).sort((a, b) => a - b);
+    const totalLevels = orderKeys.length;
+    const svgW = 500;
+    const svgH = Math.max(540, totalLevels * 90 + 60);
+    const levelSpacing = (svgH - 60) / Math.max(totalLevels, 1);
+
+    // Assign x,y positions
+    const layoutNodes = [];
+    orderKeys.forEach((order, levelIdx) => {
+      const group = groups[order];
+      const count = group.length;
+      const startX = (svgW / 2) - ((count - 1) * 95);
+
+      group.forEach((n, i) => {
+        const x = count === 1 ? svgW / 2 : startX + i * 190;
+        const y = 40 + levelIdx * levelSpacing;
+        layoutNodes.push({
+          ...n,
+          x,
+          y,
+          _originalId: n.id,
+        });
+      });
+    });
+
+    // Update the SVG viewBox
+    const flowSvg = document.getElementById('flow-svg');
+    flowSvg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+
+    // Clear existing SVG layers
+    const edgesLayer = document.getElementById('edges-layer');
+    const nodesLayer = document.getElementById('nodes-layer');
+    edgesLayer.innerHTML = '';
+    nodesLayer.innerHTML = '';
+
+    // Build a lookup from node id to layout position
+    const nodeLookup = {};
+    layoutNodes.forEach(n => { nodeLookup[n.id] = n; });
+
+    // Draw edges
+    edges.forEach(e => {
+      const from = nodeLookup[e.from];
+      const to = nodeLookup[e.to];
+      if (!from || !to) return;
+
+      const x1 = from.x, y1 = from.y + NODE_H / 2;
+      const x2 = to.x, y2 = to.y - NODE_H / 2;
+      const midY = (y1 + y2) / 2;
+
+      const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      pathEl.setAttribute('d', `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`);
+      pathEl.setAttribute('class', 'edge-path');
+      pathEl.setAttribute('marker-end', 'url(#arrow-pending)');
+      pathEl.id = `edge-${e.from}-${e.to}`;
+      edgesLayer.appendChild(pathEl);
+
+      const labelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      labelEl.setAttribute('x', (x1 + x2) / 2);
+      labelEl.setAttribute('y', midY - 4);
+      labelEl.setAttribute('class', 'edge-label');
+      labelEl.textContent = e.label || '';
+      labelEl.id = `elabel-${e.from}-${e.to}`;
+      edgesLayer.appendChild(labelEl);
+    });
+
+    // Draw nodes
+    layoutNodes.forEach(n => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.id = `node-${n.id}`;
+      const rx = n.x - NODE_W / 2, ry = n.y - NODE_H / 2;
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', rx);
+      rect.setAttribute('y', ry);
+      rect.setAttribute('width', NODE_W);
+      rect.setAttribute('height', NODE_H);
+      rect.setAttribute('class', 'node-bg');
+      rect.id = `nbg-${n.id}`;
+      g.appendChild(rect);
+
+      const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      ring.setAttribute('cx', rx + NODE_W - 10);
+      ring.setAttribute('cy', ry + 10);
+      ring.setAttribute('class', 'pulse-ring');
+      ring.id = `pulse-${n.id}`;
+      g.appendChild(ring);
+
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('cx', rx + NODE_W - 10);
+      dot.setAttribute('cy', ry + 10);
+      dot.setAttribute('class', 'status-dot');
+      dot.id = `dot-${n.id}`;
+      g.appendChild(dot);
+
+      const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      emoji.setAttribute('x', rx + 18);
+      emoji.setAttribute('y', n.y + 1);
+      emoji.setAttribute('class', 'node-emoji');
+      emoji.textContent = n.emoji || '';
+      g.appendChild(emoji);
+
+      const nameEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      nameEl.setAttribute('x', n.x + 8);
+      nameEl.setAttribute('y', n.y - 4);
+      nameEl.setAttribute('class', 'node-name');
+      nameEl.textContent = n.name || n.id;
+      g.appendChild(nameEl);
+
+      const descEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      descEl.setAttribute('x', n.x + 8);
+      descEl.setAttribute('y', n.y + 10);
+      descEl.setAttribute('class', 'node-desc');
+      descEl.textContent = n.desc || '';
+      g.appendChild(descEl);
+
+      const durLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      durLabel.setAttribute('x', n.x);
+      durLabel.setAttribute('y', n.y + NODE_H / 2 + 14);
+      durLabel.setAttribute('class', 'node-duration');
+      durLabel.id = `dur-${n.id}`;
+      durLabel.textContent = '';
+      g.appendChild(durLabel);
+
+      const check = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const cx = rx + NODE_W - 10, cy = ry + 10;
+      check.setAttribute('d', `M${cx - 4},${cy} L${cx - 1},${cy + 3} L${cx + 5},${cy - 4}`);
+      check.setAttribute('class', 'checkmark');
+      check.id = `check-${n.id}`;
+      g.appendChild(check);
+
+      nodesLayer.appendChild(g);
+    });
+
+    // Set all nodes to pending state
+    layoutNodes.forEach(n => {
+      try { setNodeState(n.id, 'pending'); } catch {}
+    });
+  }
+
+  // ─── Resolve agent name to node id ───────────────────────────────────────
+
+  _resolveNodeId(agentName) {
+    if (!agentName) return null;
+    // First try direct match from liveNodes
+    const directMatch = this.liveNodes.find(n => n.name === agentName || n.id === agentName);
+    if (directMatch) return directMatch.id;
+    // Fallback: try matching from the demo NODES
+    const demoMatch = NODES.find(n => n.name === agentName || n.id === agentName);
+    if (demoMatch) return demoMatch.id;
+    return null;
+  }
+
+  // ─── Metrics ─────────────────────────────────────────────────────────────
+
+  _updateLiveMetrics(progress) {
+    const total = this.liveTotalAgents || 8;
+    const completed = progress ? progress.completed : this.liveCompletedCount;
+    const pct = Math.round((completed / total) * 100);
+    mAgents.textContent = `${completed}/${total}`;
+    mPercent.textContent = `${pct}%`;
+    mContext.textContent = `+${this.liveTotalContext}%`;
+    progressFill.style.width = `${pct}%`;
+    progressFill.className = 'progress-fill moving';
+  }
+
+  // ─── Artifacts ───────────────────────────────────────────────────────────
+
+  _addArtifacts(artifacts, agent) {
+    if (!artifacts || artifacts.length === 0) return;
+    artifactsPanel.classList.add('visible');
+
+    artifacts.forEach(a => {
+      if (this.liveArtifacts.includes(a)) return;
+      this.liveArtifacts.push(a);
+
+      const link = document.createElement('a');
+      link.className = 'artifact-link';
+      link.href = `${this.serverUrl}/artifacts/${this.squadName}/${a}`;
+      link.target = '_blank';
+      link.title = `${agent}: ${a}`;
+      link.textContent = a;
+      artifactsList.appendChild(link);
+    });
+  }
+}
+
+// ─── Connect / Disconnect handlers ──────────────────────────────────────────
+
+btnConnect.addEventListener('click', () => {
+  const squadName = liveSquadInput.value.trim() || 'nirvana-squad-creator';
+  const serverUrl = liveServerInput.value.trim() || 'http://localhost:3001';
+
+  liveTracker = new LiveFlowTracker(serverUrl, squadName);
+  liveTracker.connect();
+});
+
+btnDisconnect.addEventListener('click', () => {
+  if (liveTracker) {
+    liveTracker.disconnect();
+    liveTracker = null;
+  }
+});
+</script>
+</body>
+</html>

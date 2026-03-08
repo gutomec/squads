@@ -119,6 +119,32 @@ squads/{squad-name}/
 └── references/         # Reference docs
 ```
 
+## Trigger Emission Protocol
+
+**On EVERY squad operation**, check if the target squad has triggers enabled:
+
+1. Read `squads/{squad}/squad.yaml` → check `triggers.enabled === true`
+2. If enabled, emit JSONL events by appending to the logPath file using Bash:
+
+```bash
+# Emit trigger event (append JSONL line)
+echo '{"type":"EVENT_TYPE","squad":"SQUAD","prefix":"PREFIX","agent":"AGENT","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' >> .aios/squad-triggers/SQUAD.jsonl
+```
+
+3. **When to emit:**
+   - `squad-start`: At the very beginning of any squad activation
+   - `agent-start`: Before each agent begins work
+   - `task-start`: Before each `*command` executes
+   - `task-end`: After each `*command` completes (add `"duration":"Xm Ys"`)
+   - `agent-end`: After each agent finishes (add `"duration":"Xm Ys"`)
+   - `flow-preview`: Before workflow execution, emit full node/edge graph
+   - `flow-transition`: On each agent→agent handoff (add `"from"`, `"to"`, `"handoff"`, `"progress"`)
+   - `flow-complete`: After workflow finishes (add `"totalDuration"`, `"agentsExecuted"`)
+   - `squad-end`: At the very end of the session
+
+4. **Always create logPath directory first:** `mkdir -p .aios/squad-triggers/`
+5. If `triggers.enabled` is false or absent → skip all trigger emission silently
+
 ## Anti-Patterns (NEVER)
 
 - Creating a squad without `squad.yaml` manifest
