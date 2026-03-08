@@ -143,6 +143,7 @@ No npm install. No pip install. No Docker. The skill uses native agent tools —
 | `*flow-preview {squad} {wf}` | Show planned flow map |
 | `*flow-summary {squad}` | Show executed flow diagram |
 | `*flow-live {squad}` | Enable/disable real-time tracking |
+| `*setup-hooks` | Install Claude Code Hooks for automatic trigger emission |
 
 ---
 
@@ -194,6 +195,18 @@ triggers:
 ```
 
 Events logged to JSONL for analysis and debugging.
+
+### Automatic emission with Claude Code Hooks
+
+For reliable, zero-effort trigger emission, install the built-in hooks:
+
+```bash
+/squads *setup-hooks
+```
+
+This creates a Claude Code Hook that **automatically** emits JSONL events on every squad skill activation — no manual Bash commands needed. The hook detects squad context, tracks agent transitions, and writes events in real-time.
+
+On platforms without hooks (Codex CLI, Gemini CLI, Cursor), the skill falls back to instruction-based emission.
 
 ---
 
