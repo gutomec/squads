@@ -51,6 +51,7 @@ User request → Classify:
 │
 ├─ TRIGGERS → Manage squad lifecycle triggers
 │  ACTION: Read references/triggers-protocol.md
+│  ACTION: Read references/hooks-setup-protocol.md
 │
 └─ WORKFLOW → Create or run collaboration workflows
    ACTION: Read references/workflow-schema.md
@@ -94,6 +95,7 @@ User request → Classify:
 | `*flow-preview {squad} {workflow}` | Mostra mapa do fluxo planejado (terminal + A2UI) |
 | `*flow-summary {squad}` | Mostra diagrama do fluxo executado |
 | `*flow-live {squad}` | Habilita/desabilita tracking em tempo real |
+| `*setup-hooks` | Instalar Claude Code Hooks para trigger emission automática |
 | `*validate-squad {name}` | Run 23-check validation |
 | `*run-workflow {squad} {wf}` | Execute squad workflow |
 
@@ -144,6 +146,19 @@ echo '{"type":"EVENT_TYPE","squad":"SQUAD","prefix":"PREFIX","agent":"AGENT","ti
 
 4. **Always create logPath directory first:** `mkdir -p .aios/squad-triggers/`
 5. If `triggers.enabled` is false or absent → skip all trigger emission silently
+
+## Hooks Auto-Setup Protocol
+
+**For reliable automatic trigger emission**, the Squad Manager MUST install Claude Code Hooks when triggers are enabled.
+
+**When to check:** On `*enable-triggers`, `*setup-hooks`, or when first detecting `triggers.enabled: true` in any squad.yaml.
+
+**How to setup:** Read `references/hooks-setup-protocol.md` and follow the 3-step protocol:
+1. Create hook file at `.claude/hooks/squad-trigger-emitter.cjs`
+2. Register in `.claude/settings.local.json` (PreToolUse:Skill + PostToolUse)
+3. Verify with `node -c` and grep
+
+**CRITICAL:** Without hooks, trigger emission relies on manual Bash commands above (fallback). Hooks provide automatic, reliable emission on every tool call. Always prefer hooks when running on Claude Code.
 
 ## Anti-Patterns (NEVER)
 
