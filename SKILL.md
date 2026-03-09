@@ -1,18 +1,6 @@
 ---
 name: squads
-description: >-
-  Standalone squad manager — creates, inspects, validates, and manages squads
-  (multi-agent teams). Scaffolds directories, agents, tasks, workflows.
-  Registers squads for slash commands. Works independently without AIOS.
-  Activates on: create squad, list squads, add agent, validate squad,
-  run workflow, inspect squad, manage squad, flow tracking, delegation.
-license: MIT
-compatibility: >-
-  Designed for Claude Code, Codex CLI, Gemini CLI, Cursor, and similar AI coding agents.
-  Requires filesystem access (read/write) and shell execution.
-metadata:
-  author: gutomec
-  version: "2.0.0"
+description: Standalone squad manager — creates, inspects, validates, and manages squads (multi-agent teams). Scaffolds directories, agents, tasks, workflows. Registers squads for slash commands. Works independently without AIOS. Activates on: create squad, list squads, add agent, validate squad, run workflow, inspect squad, manage squad.
 allowed-tools: Read Write Edit Glob Grep Bash(mkdir:*) Bash(ls:*) Bash(cp:*) Bash(ln:*) Bash(rm:*) Bash(cat:*) Bash(wc:*)
 argument-hint: [command] [args]
 context: fork
@@ -30,32 +18,32 @@ Given ANY request, classify into one intent, then **IMMEDIATELY use the Read too
 User request → Classify:
 │
 ├─ CREATE → Build new squad or add components (agent, task, workflow)
-│  ACTION: Read references/squad-creation-protocol.md
-│  ACTION: Read references/squad-yaml-schema.md
+│  ACTION: Read .claude/skills/squads/references/squad-creation-protocol.md
+│  ACTION: Read .claude/skills/squads/references/squad-yaml-schema.md
 │
 ├─ INSPECT → List squads, show info, explore structure
 │  ACTION: Glob squads/*/squad.yaml → Read each squad.yaml
 │
 ├─ MODIFY → Add/remove agents, tasks, workflows to existing squad
-│  ACTION: Read references/agent-schema.md
-│  ACTION: Read references/task-schema.md
+│  ACTION: Read .claude/skills/squads/references/agent-schema.md
+│  ACTION: Read .claude/skills/squads/references/task-schema.md
 │
 ├─ REGISTER → Register/unregister squad for slash commands
-│  ACTION: Read references/registration-protocol.md
+│  ACTION: Read .claude/skills/squads/references/registration-protocol.md
 │
 ├─ VALIDATE → Check squad integrity
-│  ACTION: Read references/validation-checklist.md
+│  ACTION: Read .claude/skills/squads/references/validation-checklist.md
 │
 ├─ DEPS → Install or check squad dependencies
-│  ACTION: Read references/dependency-management.md
+│  ACTION: Read .claude/skills/squads/references/dependency-management.md
 │
 ├─ TRIGGERS → Manage squad lifecycle triggers
-│  ACTION: Read references/triggers-protocol.md
-│  ACTION: Read references/hooks-setup-protocol.md
+│  ACTION: Read .claude/skills/squads/references/triggers-protocol.md
+│  ACTION: Read .claude/skills/squads/references/hooks-setup-protocol.md
 │
 └─ WORKFLOW → Create or run collaboration workflows
-   ACTION: Read references/workflow-schema.md
-   ACTION: Read references/workflow-patterns.md
+   ACTION: Read .claude/skills/squads/references/workflow-schema.md
+   ACTION: Read .claude/skills/squads/references/workflow-patterns.md
 ```
 
 **CRITICAL: You MUST use the Read tool to load the reference files listed above BEFORE answering. Do NOT answer from memory — the references contain the authoritative protocols, schemas, and rules.**
@@ -153,7 +141,7 @@ echo '{"type":"EVENT_TYPE","squad":"SQUAD","prefix":"PREFIX","agent":"AGENT","ti
 
 **When to check:** On `*enable-triggers`, `*setup-hooks`, or when first detecting `triggers.enabled: true` in any squad.yaml.
 
-**How to setup:** Read `references/hooks-setup-protocol.md` and follow the 3-step protocol:
+**How to setup:** Read `.claude/skills/squads/references/hooks-setup-protocol.md` and follow the 3-step protocol:
 1. Create hook file at `.claude/hooks/squad-trigger-emitter.cjs`
 2. Register in `.claude/settings.local.json` (PreToolUse:Skill + PostToolUse)
 3. Verify with `node -c` and grep
