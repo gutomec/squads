@@ -17,7 +17,7 @@
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Codex CLI](https://img.shields.io/badge/Codex%20CLI-compatible-green.svg)](https://github.com/openai/codex)
 [![Gemini CLI](https://img.shields.io/badge/Gemini%20CLI-compatible-green.svg)](https://github.com/google-gemini/gemini-cli)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Flow%20Tracker-E8A838.svg)](https://gutomec.github.io/squads/demo/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Flow%20Tracker-E8A838.svg)](https://gutomec.github.io/squads/)
 
 ```bash
 npx skills add gutomec/squads
