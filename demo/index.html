@@ -57,20 +57,65 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 0;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 body::after {
   content: '';
   position: fixed;
-  top: -40%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 140%;
-  height: 60%;
-  background: radial-gradient(ellipse, rgba(232, 168, 56, 0.03) 0%, transparent 65%);
+  top: -30%;
+  left: -20%;
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(ellipse, rgba(147, 130, 220, 0.04) 0%, transparent 70%);
+  filter: blur(80px);
   pointer-events: none;
   z-index: 0;
+  animation: aurora-drift-1 15s ease-in-out infinite alternate;
+}
+
+.aurora-blob-2 {
+  position: fixed;
+  bottom: -20%;
+  right: -15%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(ellipse, rgba(232, 168, 56, 0.05) 0%, transparent 70%);
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: 0;
+  animation: aurora-drift-2 20s ease-in-out infinite alternate;
+}
+
+.aurora-blob-3 {
+  position: fixed;
+  top: 20%;
+  right: 10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(ellipse, rgba(96, 165, 250, 0.035) 0%, transparent 65%);
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  animation: aurora-drift-3 25s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift-1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(8%, 5%) scale(1.1); }
+  100% { transform: translate(-5%, 10%) scale(0.95); }
+}
+
+@keyframes aurora-drift-2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-10%, -8%) scale(1.15); }
+  100% { transform: translate(5%, -5%) scale(1.05); }
+}
+
+@keyframes aurora-drift-3 {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+  50% { transform: translate(-6%, 8%) scale(1.1); opacity: 1; }
+  100% { transform: translate(8%, -3%) scale(0.9); opacity: 0.7; }
 }
 
 .app {
@@ -120,8 +165,21 @@ body::after {
 }
 
 .brand-text { display: flex; flex-direction: column; gap: 0.1rem; }
-.brand-name { font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+.brand-name {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 600; letter-spacing: -0.02em;
+  background: linear-gradient(90deg, var(--text) 0%, var(--text) 40%, var(--amber) 50%, var(--text) 60%, var(--text) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer-text 6s ease-in-out infinite;
+}
 .brand-sub { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; }
+
+@keyframes shimmer-text {
+  0%, 100% { background-position: 100% 0; }
+  50% { background-position: -100% 0; }
+}
 
 .header-right { display: flex; align-items: center; gap: 0.6rem; }
 
@@ -262,34 +320,34 @@ body::after {
 .graph-container { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 400px; position: relative; }
 .graph-container svg { width: 100%; height: 100%; max-height: 600px; }
 
-/* SVG node styles — premium glassmorphism cards */
+/* SVG node styles — liquid glass cards */
 .node-bg {
-  fill: rgba(14, 14, 22, 0.9);
+  fill: rgba(14, 14, 22, 0.88);
   stroke: rgba(255, 255, 255, 0.08);
   stroke-width: 1;
   rx: 16; ry: 16;
   transition: fill 0.5s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.5s ease, filter 0.5s ease;
-  filter: url(#card-glass) drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+  filter: url(#card-glass) drop-shadow(0 2px 12px rgba(0,0,0,0.35)) drop-shadow(0 0 1px rgba(255,255,255,0.05));
 }
 
-.node-bg:hover { fill: rgba(20, 20, 32, 0.95); stroke: rgba(255, 255, 255, 0.16); }
+.node-bg:hover { fill: rgba(20, 20, 32, 0.95); stroke: rgba(255, 255, 255, 0.18); filter: url(#card-glass) drop-shadow(0 4px 16px rgba(0,0,0,0.4)) drop-shadow(0 0 20px rgba(255,255,255,0.03)); }
 
-.node-top-highlight { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 1; stroke-linecap: round; opacity: 0.6; transition: opacity 0.3s ease, stroke 0.3s ease; }
-.node-top-highlight.active { stroke: rgba(96, 165, 250, 0.25); opacity: 0.9; }
-.node-top-highlight.completed { stroke: rgba(74, 222, 128, 0.2); opacity: 0.8; }
+.node-top-highlight { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 1.2; stroke-linecap: round; opacity: 0.7; transition: opacity 0.3s ease, stroke 0.3s ease; filter: drop-shadow(0 0 3px rgba(255,255,255,0.08)); }
+.node-top-highlight.active { stroke: rgba(96, 165, 250, 0.35); opacity: 1; filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.2)); }
+.node-top-highlight.completed { stroke: rgba(74, 222, 128, 0.3); opacity: 0.9; filter: drop-shadow(0 0 5px rgba(74, 222, 128, 0.15)); }
 
 .node-bg.active {
   fill: rgba(12, 16, 36, 0.95);
-  stroke: rgba(96, 165, 250, 0.6);
+  stroke: rgba(96, 165, 250, 0.65);
   stroke-width: 1.5;
-  filter: url(#card-glass-active) drop-shadow(0 0 30px rgba(96, 165, 250, 0.25)) drop-shadow(0 0 60px rgba(96, 165, 250, 0.08)) drop-shadow(0 8px 24px rgba(0,0,0,0.5));
+  filter: url(#card-glass-active) drop-shadow(0 0 30px rgba(96, 165, 250, 0.3)) drop-shadow(0 0 60px rgba(96, 165, 250, 0.1)) drop-shadow(0 8px 24px rgba(0,0,0,0.5));
 }
 
 .node-bg.completed {
   fill: rgba(8, 24, 14, 0.9);
-  stroke: rgba(74, 222, 128, 0.45);
+  stroke: rgba(74, 222, 128, 0.5);
   stroke-width: 1.5;
-  filter: url(#card-glass) drop-shadow(0 0 20px rgba(74, 222, 128, 0.15)) drop-shadow(0 0 40px rgba(74, 222, 128, 0.05)) drop-shadow(0 6px 16px rgba(0,0,0,0.4));
+  filter: url(#card-glass) drop-shadow(0 0 24px rgba(74, 222, 128, 0.2)) drop-shadow(0 0 50px rgba(74, 222, 128, 0.07)) drop-shadow(0 6px 16px rgba(0,0,0,0.4));
 }
 
 .node-shimmer-overlay { opacity: 0; pointer-events: none; }
@@ -306,14 +364,53 @@ body::after {
 @keyframes gemini-halo-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
 
 .node-emoji { font-size: 16px; text-anchor: middle; dominant-baseline: central; }
-.node-name { fill: var(--text); font-size: 10.5px; text-anchor: middle; font-family: var(--font-display); font-weight: 600; letter-spacing: -0.03em; }
-.node-desc { fill: var(--text-secondary); font-size: 7.5px; text-anchor: middle; font-family: var(--font-mono); letter-spacing: 0.01em; opacity: 0.7; }
+.node-name { fill: #f0f0f5; font-size: 10.5px; text-anchor: middle; font-family: var(--font-display); font-weight: 600; letter-spacing: -0.03em; }
+.node-desc { fill: var(--text-secondary); font-size: 7.5px; text-anchor: middle; font-family: var(--font-mono); letter-spacing: 0.01em; opacity: 0.85; }
 .node-duration { fill: var(--green); font-size: 9px; text-anchor: middle; font-family: var(--font-mono); font-weight: 500; opacity: 0; transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
 .node-duration.show { opacity: 1; }
 
 .node-progress-track { fill: rgba(255, 255, 255, 0.04); rx: 3; ry: 3; }
 .node-progress-fill { fill: var(--blue); rx: 3; ry: 3; transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1); opacity: 0.7; }
 .node-progress-fill.completed { fill: var(--green); opacity: 0.6; }
+
+/* ─── TASK INDICATOR INSIDE NODE ─── */
+.node-task-label {
+  fill: var(--text-secondary);
+  font-size: 7.5px;
+  text-anchor: middle;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.node-task-label.show { opacity: 1; }
+.node-task-label.done { opacity: 0; }
+
+.node-task-icon {
+  font-size: 9px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.node-task-icon.show { opacity: 1; animation: task-processing 1.2s ease-in-out infinite; }
+.node-task-icon.done { opacity: 0; }
+
+@keyframes task-processing {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.node-task-progress {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 1.5;
+  opacity: 0;
+  transition: opacity 0.3s ease, stroke-dashoffset 0.4s ease;
+}
+.node-task-progress.show { opacity: 0.6; }
+.node-task-progress.done { stroke: var(--green); opacity: 0.4; }
 
 .status-dot { r: 5; fill: var(--gray); transition: fill 0.4s ease, r 0.3s ease; }
 .status-dot.active { fill: var(--blue); r: 5; }
@@ -329,8 +426,12 @@ body::after {
 
 .node-glow-rect { fill: none; stroke: transparent; stroke-width: 0; rx: 16; ry: 16; opacity: 0; pointer-events: none; }
 
-@keyframes completed-celebrate { 0% { stroke-width: 3; opacity: 0.9; } 60% { stroke-width: 1.5; opacity: 0.5; } 100% { stroke-width: 1; opacity: 0; } }
-.node-glow-rect.completed { stroke: var(--green); animation: completed-celebrate 1.2s ease-out forwards; }
+@keyframes completed-celebrate { 0% { stroke-width: 4; opacity: 1; } 40% { stroke-width: 2; opacity: 0.6; } 100% { stroke-width: 1; opacity: 0; } }
+.node-glow-rect.completed { stroke: var(--green); animation: completed-celebrate 1.4s ease-out forwards; }
+
+/* Active breathing glow via the glow-rect overlay */
+@keyframes active-breathe-glow { 0%, 100% { stroke-width: 1; opacity: 0.2; } 50% { stroke-width: 2.5; opacity: 0.5; } }
+.node-glow-rect.active { stroke: var(--blue); opacity: 1; animation: active-breathe-glow 3s ease-in-out infinite; }
 
 /* Edge styles */
 .edge-path { fill: none; stroke: var(--gray); stroke-width: 1.5; stroke-dasharray: 4 6; opacity: 0.2; transition: stroke 0.5s ease, opacity 0.5s ease, stroke-dasharray 0.5s ease, stroke-width 0.3s ease; }
@@ -373,18 +474,18 @@ body::after {
   border: 1px solid var(--bg-card-border);
   border-radius: var(--radius-sm);
   background: rgba(14, 14, 20, 0.65);
-  backdrop-filter: blur(16px) saturate(1.3);
-  animation: event-slide-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  backdrop-filter: blur(24px) saturate(1.5) brightness(1.05);
+  animation: event-slide-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   opacity: 0;
   transform: translateY(8px);
   font-size: 0.75rem;
   line-height: 1.5;
-  transition: border-color 0.3s ease, background 0.3s ease;
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.25s ease;
   position: relative;
   overflow: hidden;
 }
 
-.event:hover { border-color: var(--bg-card-border-hover); background: rgba(20, 20, 30, 0.8); }
+.event:hover { border-color: var(--bg-card-border-hover); background: rgba(20, 20, 30, 0.85); transform: translateX(4px); }
 
 .event::before {
   content: '';
@@ -396,13 +497,18 @@ body::after {
 
 @keyframes event-slide-in { to { opacity: 1; transform: translateY(0); } }
 
-.event--squad::before { background: var(--green); box-shadow: 0 0 8px rgba(74, 222, 128, 0.3); }
-.event--task-start::before { background: var(--blue); box-shadow: 0 0 8px rgba(96, 165, 250, 0.3); }
-.event--task-end::before { background: var(--green); box-shadow: 0 0 8px rgba(74, 222, 128, 0.3); }
-.event--flow::before { background: var(--amber); box-shadow: 0 0 8px rgba(232, 168, 56, 0.3); }
-.event--error::before { background: var(--red); box-shadow: 0 0 8px rgba(248, 113, 113, 0.3); }
-.event--summary::before { background: linear-gradient(180deg, var(--amber), var(--green)); box-shadow: 0 0 10px rgba(232, 168, 56, 0.3); }
-.event--summary { background: rgba(232, 168, 56, 0.06); border-color: rgba(232, 168, 56, 0.15); }
+.event--squad::before { background: var(--green); box-shadow: 0 0 12px rgba(74, 222, 128, 0.4), 0 0 4px rgba(74, 222, 128, 0.6); }
+.event--squad { background: linear-gradient(90deg, rgba(74, 222, 128, 0.05) 0%, transparent 40%), rgba(14, 14, 20, 0.65); }
+.event--task-start::before { background: var(--blue); box-shadow: 0 0 12px rgba(96, 165, 250, 0.4), 0 0 4px rgba(96, 165, 250, 0.6); }
+.event--task-start { background: linear-gradient(90deg, rgba(96, 165, 250, 0.04) 0%, transparent 40%), rgba(14, 14, 20, 0.65); }
+.event--task-end::before { background: var(--green); box-shadow: 0 0 12px rgba(74, 222, 128, 0.4), 0 0 4px rgba(74, 222, 128, 0.6); }
+.event--task-end { background: linear-gradient(90deg, rgba(74, 222, 128, 0.04) 0%, transparent 40%), rgba(14, 14, 20, 0.65); }
+.event--flow::before { background: var(--amber); box-shadow: 0 0 12px rgba(232, 168, 56, 0.4), 0 0 4px rgba(232, 168, 56, 0.6); }
+.event--flow { background: linear-gradient(90deg, rgba(232, 168, 56, 0.05) 0%, transparent 40%), rgba(14, 14, 20, 0.65); }
+.event--error::before { background: var(--red); box-shadow: 0 0 12px rgba(248, 113, 113, 0.4), 0 0 4px rgba(248, 113, 113, 0.6); }
+.event--error { background: linear-gradient(90deg, rgba(248, 113, 113, 0.05) 0%, transparent 40%), rgba(14, 14, 20, 0.65); }
+.event--summary::before { background: linear-gradient(180deg, var(--amber), var(--green)); box-shadow: 0 0 14px rgba(232, 168, 56, 0.4), 0 0 6px rgba(74, 222, 128, 0.4); }
+.event--summary { background: linear-gradient(90deg, rgba(232, 168, 56, 0.08) 0%, rgba(74, 222, 128, 0.04) 50%, transparent 80%), rgba(14, 14, 20, 0.65); border-color: rgba(232, 168, 56, 0.18); }
 
 .event-icon { margin-right: 0.35rem; font-size: 0.7rem; }
 .event-header { color: var(--text); font-weight: 500; font-family: var(--font-display); font-size: 0.78rem; letter-spacing: -0.01em; }
@@ -420,7 +526,20 @@ body::after {
   background: var(--bg-elevated);
 }
 
-.progress-track { flex: 1; min-width: 160px; height: 4px; background: rgba(255, 255, 255, 0.04); border-radius: 4px; overflow: hidden; }
+.progress-track {
+  flex: 1; min-width: 160px; height: 5px; background: rgba(255, 255, 255, 0.04); border-radius: 4px; overflow: hidden;
+  position: relative;
+}
+
+/* Segment markers at each 12.5% (8 agents) */
+.progress-track::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0%, transparent calc(12.5% - 1px), rgba(255,255,255,0.06) calc(12.5% - 1px), rgba(255,255,255,0.06) 12.5%);
+  z-index: 1;
+  pointer-events: none;
+}
 
 .progress-fill {
   height: 100%;
@@ -429,21 +548,45 @@ body::after {
   border-radius: 4px;
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
+  overflow: hidden;
+}
+
+/* Shimmer overlay on progress */
+.progress-fill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: progress-shimmer 2s ease-in-out infinite;
 }
 
 .progress-fill::after {
   content: '';
   position: absolute;
-  right: 0; top: -3px;
-  width: 10px; height: 10px;
+  right: 0; top: -4px;
+  width: 12px; height: 12px;
   border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 14px rgba(74, 222, 128, 0.5), 0 0 6px rgba(74, 222, 128, 0.8);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .progress-fill.moving::after { opacity: 1; }
+
+/* Completion pulse glow */
+.progress-fill.complete { box-shadow: 0 0 16px rgba(74, 222, 128, 0.4), 0 0 4px rgba(74, 222, 128, 0.6); animation: progress-complete-pulse 2s ease-in-out infinite; }
+
+@keyframes progress-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes progress-complete-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(74, 222, 128, 0.3), 0 0 3px rgba(74, 222, 128, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(74, 222, 128, 0.5), 0 0 6px rgba(74, 222, 128, 0.8); }
+}
 
 .metric { font-size: 0.68rem; font-family: var(--font-mono); color: var(--text-dim); white-space: nowrap; }
 .metric-val { color: var(--text); font-weight: 500; }
@@ -479,9 +622,42 @@ body::after {
   font-size: 0.75rem;
   font-family: var(--font-mono);
 }
+
+/* ─── PARTICLE CELEBRATION ─── */
+.particle-burst {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 50;
+  animation: particle-fly 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes particle-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0); }
+}
+
+/* ─── THIRD PULSE RING ─── */
+@keyframes pulse-ring-outer-2 { 0% { r: 5; opacity: 0.4; stroke-width: 1; } 60% { r: 20; opacity: 0.08; stroke-width: 0.5; } 100% { r: 26; opacity: 0; stroke-width: 0.3; } }
+.pulse-ring-outer-2 { fill: none; stroke: var(--blue); stroke-width: 1; opacity: 0; }
+.pulse-ring-outer-2.active { animation: pulse-ring-outer-2 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; animation-delay: 0.8s; }
+
+/* ─── NODE ACTIVE NAME SHIMMER ─── */
+.node-name-active {
+  animation: node-name-glow 2s ease-in-out infinite;
+}
+
+@keyframes node-name-glow {
+  0%, 100% { fill: var(--text); }
+  50% { fill: var(--blue); }
+}
 </style>
 </head>
 <body>
+<div class="aurora-blob-2"></div>
+<div class="aurora-blob-3"></div>
 <div class="app">
 
   <!-- HEADER -->
@@ -673,6 +849,41 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 4000);
 }
 
+function spawnParticles(nodeId) {
+  const nodeEl = document.getElementById(`nbg-${nodeId}`);
+  if (!nodeEl) return;
+  const svg = document.getElementById('flow-svg');
+  const svgRect = svg.getBoundingClientRect();
+  const bbox = nodeEl.getBBox();
+  // Convert SVG coords to screen coords
+  const viewBox = svg.viewBox.baseVal;
+  const scaleX = svgRect.width / viewBox.width;
+  const scaleY = svgRect.height / viewBox.height;
+  const cx = svgRect.left + (bbox.x + bbox.width / 2) * scaleX;
+  const cy = svgRect.top + (bbox.y + bbox.height / 2) * scaleY;
+
+  const count = 10;
+  const colors = ['#4ade80', '#86efac', '#ffffff', '#a7f3d0'];
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+    const dist = 30 + Math.random() * 50;
+    const px = Math.cos(angle) * dist;
+    const py = Math.sin(angle) * dist;
+    const el = document.createElement('div');
+    el.className = 'particle-burst';
+    el.style.left = cx + 'px';
+    el.style.top = cy + 'px';
+    el.style.setProperty('--px', px + 'px');
+    el.style.setProperty('--py', py + 'px');
+    el.style.background = colors[i % colors.length];
+    el.style.width = (4 + Math.random() * 4) + 'px';
+    el.style.height = el.style.width;
+    el.style.boxShadow = `0 0 6px ${colors[i % colors.length]}`;
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+}
+
 function setNodeState(id, st) {
   nodeStates[id] = st;
   const bg = document.getElementById(`nbg-${id}`);
@@ -693,7 +904,9 @@ function setNodeState(id, st) {
   if (dot) dot.className.baseVal = 'status-dot' + (st !== 'pending' ? ' ' + st : '');
   if (pulse) pulse.className.baseVal = 'pulse-ring' + (st === 'active' ? ' active' : '');
   if (pulseInner) pulseInner.className.baseVal = 'pulse-ring-inner' + (st === 'active' ? ' active' : '');
-  if (glow) glow.className.baseVal = 'node-glow-rect' + (st === 'completed' ? ' completed' : '');
+  const pulseOuter2 = document.getElementById(`pulse-outer2-${id}`);
+  if (pulseOuter2) pulseOuter2.className.baseVal = 'pulse-ring-outer-2' + (st === 'active' ? ' active' : '');
+  if (glow) glow.className.baseVal = 'node-glow-rect' + (st === 'active' ? ' active' : st === 'completed' ? ' completed' : '');
   if (gradBorder) gradBorder.className.baseVal = 'gemini-glow-border' + (st === 'active' ? ' active' : '');
   if (halo) halo.className.baseVal = 'gemini-glow-halo' + (st === 'active' ? ' active' : '');
   if (highlight) highlight.className.baseVal = 'node-top-highlight' + (st !== 'pending' ? ' ' + st : '');
@@ -703,6 +916,7 @@ function setNodeState(id, st) {
     if (dur) dur.className.baseVal = 'node-duration show';
     if (check) check.className.baseVal = 'checkmark show';
     if (dot) dot.style.display = 'none';
+    try { spawnParticles(id); } catch(e) { console.warn('Particle error:', e); }
   } else {
     if (dur) dur.className.baseVal = 'node-duration';
     if (check) check.className.baseVal = 'checkmark';
@@ -950,6 +1164,12 @@ function renderGraph(nodes, edges) {
     ringInner.id = `pulse-inner-${n.id}`;
     g.appendChild(ringInner);
 
+    const ringOuter2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    ringOuter2.setAttribute('cx', rx + NODE_W - 12); ringOuter2.setAttribute('cy', ry + 12);
+    ringOuter2.setAttribute('class', 'pulse-ring-outer-2');
+    ringOuter2.id = `pulse-outer2-${n.id}`;
+    g.appendChild(ringOuter2);
+
     const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     dot.setAttribute('cx', rx + NODE_W - 12); dot.setAttribute('cy', ry + 12);
     dot.setAttribute('class', 'status-dot');
@@ -973,6 +1193,40 @@ function renderGraph(nodes, edges) {
     descEl.setAttribute('class', 'node-desc');
     descEl.textContent = n.desc || '';
     g.appendChild(descEl);
+
+    // Task indicator: icon + label inside node
+    const taskIcon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    taskIcon.setAttribute('x', rx + 14); taskIcon.setAttribute('y', n.y + 28);
+    taskIcon.setAttribute('class', 'node-task-icon');
+    taskIcon.textContent = '\u{1F4C4}';
+    taskIcon.id = `task-icon-${n.id}`;
+    g.appendChild(taskIcon);
+
+    const taskLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    taskLabel.setAttribute('x', n.x + 4); taskLabel.setAttribute('y', n.y + 29);
+    taskLabel.setAttribute('class', 'node-task-label');
+    taskLabel.id = `task-label-${n.id}`;
+    g.appendChild(taskLabel);
+
+    // Mini progress bar for tasks inside node
+    const taskTrack = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    taskTrack.setAttribute('x', rx + 10); taskTrack.setAttribute('y', n.y + 35);
+    taskTrack.setAttribute('width', NODE_W - 20); taskTrack.setAttribute('height', 2);
+    taskTrack.setAttribute('rx', '1'); taskTrack.setAttribute('ry', '1');
+    taskTrack.setAttribute('fill', 'rgba(255,255,255,0.04)');
+    taskTrack.setAttribute('class', 'node-task-progress');
+    taskTrack.id = `task-track-${n.id}`;
+    g.appendChild(taskTrack);
+
+    const taskFill = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    taskFill.setAttribute('x', rx + 10); taskFill.setAttribute('y', n.y + 35);
+    taskFill.setAttribute('width', '0'); taskFill.setAttribute('height', 2);
+    taskFill.setAttribute('rx', '1'); taskFill.setAttribute('ry', '1');
+    taskFill.setAttribute('fill', 'var(--blue)');
+    taskFill.setAttribute('opacity', '0');
+    taskFill.style.transition = 'width 0.4s ease, opacity 0.3s ease';
+    taskFill.id = `task-fill-${n.id}`;
+    g.appendChild(taskFill);
 
     const durLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     durLabel.setAttribute('x', n.x);
@@ -1000,6 +1254,44 @@ let completedCount = 0;
 let totalAgents = 0;
 let startTime = null;
 let elapsedTimer = null;
+let agentTaskCount = {};   // nodeId -> { total: N, completed: N }
+
+function setNodeTask(nodeId, taskName) {
+  const icon = document.getElementById(`task-icon-${nodeId}`);
+  const label = document.getElementById(`task-label-${nodeId}`);
+  const track = document.getElementById(`task-track-${nodeId}`);
+  const fill = document.getElementById(`task-fill-${nodeId}`);
+  if (!label) return;
+
+  // Truncate long task names
+  const shortName = taskName.length > 20 ? taskName.slice(0, 18) + '…' : taskName;
+  label.textContent = shortName;
+  label.className.baseVal = 'node-task-label show';
+  if (icon) icon.className.baseVal = 'node-task-icon show';
+  if (track) { track.className.baseVal = 'node-task-progress show'; track.setAttribute('fill', 'rgba(255,255,255,0.06)'); }
+  if (fill) { fill.setAttribute('opacity', '0.7'); }
+}
+
+function clearNodeTask(nodeId) {
+  const icon = document.getElementById(`task-icon-${nodeId}`);
+  const label = document.getElementById(`task-label-${nodeId}`);
+  if (icon) icon.className.baseVal = 'node-task-icon done';
+  if (label) label.className.baseVal = 'node-task-label done';
+}
+
+function updateNodeTaskProgress(nodeId) {
+  const info = agentTaskCount[nodeId];
+  if (!info || info.total === 0) return;
+  const fill = document.getElementById(`task-fill-${nodeId}`);
+  if (!fill) return;
+  const maxWidth = NODE_W - 20;
+  const pct = info.completed / info.total;
+  fill.setAttribute('width', Math.round(maxWidth * pct));
+  fill.setAttribute('opacity', '0.7');
+  if (pct >= 1) {
+    fill.setAttribute('fill', 'var(--green)');
+  }
+}
 
 function resetState() {
   nodeStates = {};
@@ -1007,6 +1299,7 @@ function resetState() {
   eventCount = 0;
   completedCount = 0;
   totalAgents = 0;
+  agentTaskCount = {};
   startTime = null;
   if (elapsedTimer) clearInterval(elapsedTimer);
   elapsedTimer = null;
@@ -1027,7 +1320,11 @@ function updateMetrics() {
   mAgents.textContent = `${completedCount}/${total}`;
   mPercent.textContent = `${pct}%`;
   progressFill.style.width = `${pct}%`;
-  progressFill.className = 'progress-fill moving';
+  if (pct >= 100) {
+    progressFill.className = 'progress-fill complete';
+  } else {
+    progressFill.className = 'progress-fill moving';
+  }
 }
 
 function processEvent(data) {
@@ -1080,15 +1377,30 @@ function processEvent(data) {
       break;
     }
 
-    case 'task-start':
+    case 'task-start': {
+      const nodeId = agentToId(data.agent);
+      if (nodeId) {
+        if (!agentTaskCount[nodeId]) agentTaskCount[nodeId] = { total: 0, completed: 0 };
+        agentTaskCount[nodeId].total++;
+        setNodeTask(nodeId, data.task || 'processing...');
+      }
       addEvent('task-start', '\u{26A1}', `[TASK] ${data.task}`,
         [`Agent: ${data.agent}`], time);
       break;
+    }
 
-    case 'task-end':
+    case 'task-end': {
+      const nodeId = agentToId(data.agent);
+      if (nodeId) {
+        if (!agentTaskCount[nodeId]) agentTaskCount[nodeId] = { total: 1, completed: 0 };
+        agentTaskCount[nodeId].completed++;
+        updateNodeTaskProgress(nodeId);
+        clearNodeTask(nodeId);
+      }
       addEvent('task-end', '\u{2705}', `[TASK] ${data.task}`,
         [`Result: ${(data.result || '?').toUpperCase()}`], time);
       break;
+    }
 
     case 'flow-transition': {
       const fromId = agentToId(data.from);
