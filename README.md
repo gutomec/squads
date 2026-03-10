@@ -23,7 +23,7 @@
 npx skills add gutomec/squads
 ```
 
-[Install](#install) · [Commands](#commands) · [Workflows](#workflows--how-agents-collaborate) · [Triggers](#triggers--lifecycle-events) · [Flow Tracker](#flow-tracker--visualize-collaboration) · [Marketplace](https://squads.sh)
+[Install](#install) · [Commands](#commands) · [Workflows](#workflows--how-agents-collaborate) · [Triggers](#triggers--lifecycle-events) · [Flow Tracker](#flow-tracker--visualize-collaboration) · [Example Squads](#example-squads) · [Marketplace](https://squads.sh)
 
 </div>
 
@@ -195,7 +195,7 @@ triggers:
    Duration: 13m 45s | Tasks: 8
 ```
 
-Events logged to JSONL for analysis and debugging.
+Events are logged to JSONL for analysis, debugging, and [Flow Tracker](#flow-tracker--visualize-collaboration) visualization.
 
 ### Automatic emission with Claude Code Hooks
 
@@ -213,9 +213,13 @@ On platforms without hooks (Codex CLI, Gemini CLI, Cursor), the skill falls back
 
 ## Flow Tracker — visualize collaboration
 
-See exactly what your squad is doing with real-time flow diagrams:
+See exactly what your squad is doing with real-time flow diagrams — both in the terminal and in the browser.
 
-### Preview (before execution)
+> **[Try the live demo →](https://gutomec.github.io/squads/)**
+>
+> Watch an 8-agent pipeline (nirvana-squad-creator) execute step-by-step with animated nodes, edges, and a real-time event timeline.
+
+### Terminal output
 
 ```
 📋 Flow Preview: brandcraft / main-pipeline
@@ -230,30 +234,26 @@ See exactly what your squad is doing with real-time flow diagrams:
   Agents: 6 | Steps: 7 | Pattern: pipeline + parallel + review
 ```
 
-### Live (during execution)
+### Browser visualization
 
-```
-🔄 [FLOW:bc] bc-extractor ──→ bc-inspector
-   Handoff: brand-assets.json (3 artifacts)
-   Progress: ██░░░░ 2/6 agents (33%)
-```
+The Flow Tracker includes a browser-based viewer that renders squad pipelines as interactive SVG graphs via SSE (Server-Sent Events):
 
-### Summary (after execution)
+- **Directed graph layout** with agent nodes connected by edges
+- **Color-coded states**: gray (pending) → blue (active) → green (completed)
+- **Animated transitions** on agent handoffs with particle effects
+- **Live event timeline** with timestamps and task details
+- **Progress bar** and execution metrics
 
-```
-📊 Flow Summary: brandcraft / main-pipeline
+Run the demo locally:
 
-  bc-extractor (2m 15s) ──→ bc-inspector (1m 30s) ──→ bc-templater (3m 45s)
-       │                                                        │
-       └── bc-illustrator (4m 10s, parallel) ───────────────────┘
-                                    │
-                              bc-refiner (1m 20s) ←→ bc-presenter (0m 45s)
-
-  Total: 13m 45s | Agents: 6/6 | Tasks: 8 | Context: +23%
-  Bottleneck: bc-templater (3m 45s, 27% of total)
+```bash
+cd demo && node server.js
+# → http://localhost:3001
 ```
 
-### A2UI Browser Rendering
+Or open `demo/index.html` directly in a browser — it works standalone with an embedded scenario replay.
+
+### A2UI Protocol
 
 Flow Tracker supports the [A2UI protocol](https://a2ui.org/) for browser visualization — real-time graph updates via SSE with custom components:
 
@@ -265,6 +265,38 @@ Flow Tracker supports the [A2UI protocol](https://a2ui.org/) for browser visuali
 | `FlowProgress` | Global progress bar |
 | `FlowMetrics` | Duration, context delta, bottleneck |
 | `FlowTimeline` | Vertical event timeline |
+
+---
+
+## Example Squads
+
+This repo includes two production-ready squads you can study, copy, or use directly:
+
+### nirvana-squad-creator
+
+An 8-agent pipeline that creates other squads from scratch. Given a description of what you need, it analyzes requirements, creates agents, tasks, workflows, optimizes, validates, generates documentation, and publishes — fully automated.
+
+```
+squads/nirvana-squad-creator/
+├── agents/    (8 specialists: analyzer, agent-creator, task-creator, ...)
+├── tasks/     (22 tasks with pre/post conditions)
+├── workflows/ (main pipeline + validation loop)
+└── squad.yaml
+```
+
+### ultimate-landingpage
+
+A 9-agent squad for building high-conversion landing pages. Researcher, strategist, copywriter, design architect, frontend dev, backend dev, image creator, integrator, and reviewer — each with clearly defined responsibilities.
+
+```
+squads/ultimate-landingpage/
+├── agents/    (9 specialists: researcher, strategist, copywriter, ...)
+├── tasks/     (33 tasks across the full LP lifecycle)
+├── workflows/ (research → design → build → review pipeline)
+└── squad.yaml
+```
+
+Browse the source in [`squads/`](squads/) to see how real squads are structured.
 
 ---
 
@@ -347,7 +379,7 @@ npx skills add gutomec/squads
 
 ---
 
-[Install](#install) · [Commands](#commands) · [Workflows](#workflows--how-agents-collaborate) · [Triggers](#triggers--lifecycle-events) · [Flow Tracker](#flow-tracker--visualize-collaboration) · [squads.sh](https://squads.sh)
+[Install](#install) · [Commands](#commands) · [Workflows](#workflows--how-agents-collaborate) · [Triggers](#triggers--lifecycle-events) · [Flow Tracker](#flow-tracker--visualize-collaboration) · [Example Squads](#example-squads) · [squads.sh](https://squads.sh)
 
 </div>
 
