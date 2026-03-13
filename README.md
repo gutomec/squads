@@ -217,7 +217,7 @@ See exactly what your squad is doing with real-time flow diagrams — both in th
 
 > **[Try the live demo →](https://gutomec.github.io/ai-public-arsenal/demo/)**
 >
-> Watch a 21-agent team (sales-funnel-masters) with hub-and-spoke parallel topology, or an 8-agent sequential pipeline (nirvana-squad-creator) — animated nodes, edges, and real-time event timeline.
+> Watch a **21-agent hub-and-spoke team** (sales-funnel-masters) with parallel specialist flows, or an **8-agent sequential pipeline** (nirvana-squad-creator) — animated nodes, edges, and real-time event timeline.
 
 ### Terminal output
 
