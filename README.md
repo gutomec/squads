@@ -17,7 +17,7 @@
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-green.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![Codex CLI](https://img.shields.io/badge/Codex%20CLI-compatible-green.svg)](https://github.com/openai/codex)
 [![Gemini CLI](https://img.shields.io/badge/Gemini%20CLI-compatible-green.svg)](https://github.com/google-gemini/gemini-cli)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Flow%20Tracker-E8A838.svg)](https://gutomec.github.io/squads/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Flow%20Tracker-E8A838.svg)](https://gutomec.github.io/ai-public-arsenal/demo/)
 
 ```bash
 npx skills add gutomec/squads
@@ -215,9 +215,9 @@ On platforms without hooks (Codex CLI, Gemini CLI, Cursor), the skill falls back
 
 See exactly what your squad is doing with real-time flow diagrams — both in the terminal and in the browser.
 
-> **[Try the live demo →](https://gutomec.github.io/squads/)**
+> **[Try the live demo →](https://gutomec.github.io/ai-public-arsenal/demo/)**
 >
-> Watch an 8-agent pipeline (nirvana-squad-creator) execute step-by-step with animated nodes, edges, and a real-time event timeline.
+> Watch a 21-agent team (sales-funnel-masters) with hub-and-spoke parallel topology, or an 8-agent sequential pipeline (nirvana-squad-creator) — animated nodes, edges, and real-time event timeline.
 
 ### Terminal output
 
@@ -238,20 +238,19 @@ See exactly what your squad is doing with real-time flow diagrams — both in th
 
 The Flow Tracker includes a browser-based viewer that renders squad pipelines as interactive SVG graphs via SSE (Server-Sent Events):
 
-- **Directed graph layout** with agent nodes connected by edges
+- **Adaptive BFS-level layout** — automatically arranges nodes by dependency depth; parallel agents appear side-by-side
+- **Hub-and-spoke visualization** — orchestrators fan out to team leads, each with their own pipeline chain
 - **Color-coded states**: gray (pending) → blue (active) → green (completed)
 - **Animated transitions** on agent handoffs with particle effects
 - **Live event timeline** with timestamps and task details
 - **Progress bar** and execution metrics
 
-Run the demo locally:
+**Two modes:**
 
-```bash
-cd demo && node server.js
-# → http://localhost:3001
-```
-
-Or open `demo/index.html` directly in a browser — it works standalone with an embedded scenario replay.
+| Mode | How | Best for |
+|:-----|:----|:---------|
+| **Demo** | Open [live demo](https://gutomec.github.io/ai-public-arsenal/demo/) or `demo/index.html` directly | Quick preview, sharing, GitHub Pages |
+| **Dashboard** | `cd demo && node server.js` → `http://localhost:3001` | Real-time monitoring of live executions |
 
 ### A2UI Protocol
 
